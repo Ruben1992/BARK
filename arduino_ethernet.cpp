@@ -37,7 +37,8 @@ void loop()
 {
     spi.init();
     wiz.setIpData();
-    wiz.write();
+    wiz.write(wiz.R_com, wiz.C_Mode, );
+
 
     while(1){
     ///while (SPI_write(wiz.r_com, wiz.c_Mode, 5) != -1);

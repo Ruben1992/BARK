@@ -26,100 +26,104 @@ class wiznet{
     public:
 
 ///-- First byte to send (selecting read, or write mode)
-    static const uint8_t M_write   = 0xF0;    /// Write Mode
-    static const uint8_t M_read    = 0x0F;    /// Read Mode
+    static const uint8_t M_write     = 0xF0;    /// Write Mode
+    static const uint8_t M_read      = 0x0F;    /// Read Mode
 ///-- Second byte to send (selecting register group)
-    static const uint8_t R_com     = 0x00;    /// Common Register
-    static const uint8_t R_s0      = 0x04;    /// Socket 0
-    static const uint8_t R_s1      = 0x05;    /// Socket 1
-    static const uint8_t R_s2      = 0x06;    /// Socket 2
-    static const uint8_t R_s3      = 0x07;    /// Socket 3
+    static const uint8_t R_com       = 0x00;    /// Common Register
+    static const uint8_t R_s0        = 0x04;    /// Socket 0
+    static const uint8_t R_s1        = 0x05;    /// Socket 1
+    static const uint8_t R_s2        = 0x06;    /// Socket 2
+    static const uint8_t R_s3        = 0x07;    /// Socket 3
 ///-- Third byte to send (acces specific register in a group)
-    /// Common registers
-    static const uint8_t C_Mode    = 0x00;    /// MODE
+    /// Common registers ****************************************************************************************************
+    /// Common registers ****************************************************************************************************
+    /// Common registers ****************************************************************************************************
+    static const uint8_t C_Mode      = 0x00;    /// MODE
 
-    static const uint8_t C_GAR0    = 0x01;    /// Gateway address
-    static const uint8_t C_GAR1    = 0x02;
-    static const uint8_t C_GAR2    = 0x03;
-    static const uint8_t C_GAR3    = 0x04;
+    static const uint8_t C_GAR0      = 0x01;    /// Gateway address
+    static const uint8_t C_GAR1      = 0x02;
+    static const uint8_t C_GAR2      = 0x03;
+    static const uint8_t C_GAR3      = 0x04;
 
-    static const uint8_t C_SUBR0   = 0x05;    /// Subnet mask address
-    static const uint8_t C_SUBR1   = 0x06;
-    static const uint8_t C_SUBR2   = 0x07;
-    static const uint8_t C_SUBR3   = 0x08;
+    static const uint8_t C_SUBR0     = 0x05;    /// Subnet mask address
+    static const uint8_t C_SUBR1     = 0x06;
+    static const uint8_t C_SUBR2     = 0x07;
+    static const uint8_t C_SUBR3     = 0x08;
 
-    static const uint8_t C_SHAR0   = 0x09;    /// Source Hardware address
-    static const uint8_t C_SHAR1   = 0x0A;
-    static const uint8_t C_SHAR2   = 0x0B;
-    static const uint8_t C_SHAR3   = 0x0C;
-    static const uint8_t C_SHAR4   = 0x0D;
-    static const uint8_t C_SHAR5   = 0x0E;
+    static const uint8_t C_SHAR0     = 0x09;    /// Source Hardware address
+    static const uint8_t C_SHAR1     = 0x0A;
+    static const uint8_t C_SHAR2     = 0x0B;
+    static const uint8_t C_SHAR3     = 0x0C;
+    static const uint8_t C_SHAR4     = 0x0D;
+    static const uint8_t C_SHAR5     = 0x0E;
 
-    static const uint8_t C_SIPR0   = 0x0F;    /// source IP address
-    static const uint8_t C_SIPR1   = 0x10;
-    static const uint8_t C_SIPR2   = 0x11;
-    static const uint8_t C_SIPR3   = 0x12;
+    static const uint8_t C_SIPR0     = 0x0F;    /// source IP address
+    static const uint8_t C_SIPR1     = 0x10;
+    static const uint8_t C_SIPR2     = 0x11;
+    static const uint8_t C_SIPR3     = 0x12;
 
-    static const uint8_t C_IR      = 0x15;    /// Interrupt
-    static const uint8_t C_IRM     = 0x16;    /// Interrupt Mask
+    static const uint8_t C_IR        = 0x15;    /// Interrupt
+    static const uint8_t C_IRM       = 0x16;    /// Interrupt Mask
 
-    static const uint8_t C_RTR0    = 0x17;    /// Retry time
-    static const uint8_t C_RTR1    = 0x18;
-    static const uint8_t C_RCR     = 0x19;    /// Retry count
+    static const uint8_t C_RTR0      = 0x17;    /// Retry time
+    static const uint8_t C_RTR1      = 0x18;
+    static const uint8_t C_RCR       = 0x19;    /// Retry count
 
-    static const uint8_t C_RMSR    = 0x1A;    /// Rx Memory size
-    static const uint8_t C_TMSR    = 0x1B;    /// Tx Memory size
+    static const uint8_t C_RMSR      = 0x1A;    /// Rx Memory size
+    static const uint8_t C_TMSR      = 0x1B;    /// Tx Memory size
 
-    static const uint8_t C_PATR0   = 0x1C;    /// Authentication Type in PPPoE
-    static const uint8_t C_PATR1   = 0x1D;
+    static const uint8_t C_PATR0     = 0x1C;    /// Authentication Type in PPPoE
+    static const uint8_t C_PATR1     = 0x1D;
 
-    static const uint8_t C_PTIMER  = 0x28;    /// PPP LCP Request Timer
-    static const uint8_t C_PMAGIC  = 0x29;    /// PPP LCP Magic number
+    static const uint8_t C_PTIMER    = 0x28;    /// PPP LCP Request Timer
+    static const uint8_t C_PMAGIC    = 0x29;    /// PPP LCP Magic number
 
-    static const uint8_t C_UIPR0   = 0x2A;    /// Unreachable IP address
-    static const uint8_t C_UIPR1   = 0x2B;
-    static const uint8_t C_UIPR2   = 0x2C;
-    static const uint8_t C_UIPR3   = 0x2D;
+    static const uint8_t C_UIPR0     = 0x2A;    /// Unreachable IP address
+    static const uint8_t C_UIPR1     = 0x2B;
+    static const uint8_t C_UIPR2     = 0x2C;
+    static const uint8_t C_UIPR3     = 0x2D;
 
-    static const uint8_t C_UPORT0  = 0x2E;    /// Unreachable Port
-    static const uint8_t C_UPORT1  = 0x2F;
-    ///---Socket registers
-    static const uint8_t Sx_MR       = 0x00; /// MODE
-    static const uint8_t Sx_CR       = 0x01; /// COMMAND
-    static const uint8_t Sx_IR       = 0x02; /// Interrupt
-    static const uint8_t Sx_SR       = 0x03; /// Status
+    static const uint8_t C_UPORT0    = 0x2E;    /// Unreachable Port
+    static const uint8_t C_UPORT1    = 0x2F;
+    ///---Socket registers   ***********************************************************************************************
+    ///---Socket registers   ***********************************************************************************************
+    ///---Socket registers   ***********************************************************************************************
+    static const uint8_t Sx_MR       = 0x00;    /// MODE
+    static const uint8_t Sx_CR       = 0x01;    /// COMMAND
+    static const uint8_t Sx_IR       = 0x02;    /// Interrupt
+    static const uint8_t Sx_SR       = 0x03;    /// Status
 
-    static const uint8_t Sx_PORT0    = 0x04; /// Source Port
+    static const uint8_t Sx_PORT0    = 0x04;    /// Source Port
     static const uint8_t Sx_PORT1    = 0x05;
 
-    static const uint8_t Sx_DHAR0    = 0x06; /// Destination Hardware address
+    static const uint8_t Sx_DHAR0    = 0x06;    /// Destination Hardware address
     static const uint8_t Sx_DHAR1    = 0x07;
     static const uint8_t Sx_DHAR2    = 0x08;
     static const uint8_t Sx_DHAR3    = 0x09;
     static const uint8_t Sx_DHAR4    = 0x0A;
     static const uint8_t Sx_DHAR5    = 0x0B;
 
-    static const uint8_t Sx_DIPR0    = 0x0C; /// Destination IP Address
+    static const uint8_t Sx_DIPR0    = 0x0C;    /// Destination IP Address
     static const uint8_t Sx_DIPR1    = 0x0D;
     static const uint8_t Sx_DIPR2    = 0x0E;
     static const uint8_t Sx_DIPR3    = 0x0F;
 
-    static const uint8_t Sx_DPORT0   = 0x10; /// Destination Port
+    static const uint8_t Sx_DPORT0   = 0x10;    /// Destination Port
     static const uint8_t Sx_DPORT1   = 0x11;
-    static const uint8_t Sx_MSSR0    = 0x12; /// Maximum segmet size
+    static const uint8_t Sx_MSSR0    = 0x12;    /// Maximum segmet size
     static const uint8_t Sx_MSSR1    = 0x13;
-    static const uint8_t Sx_PROTO    = 0x14; /// Protocol in raw mode
-    static const uint8_t Sx_TOS      = 0x15; /// IP TOS
-    static const uint8_t Sx_TTL      = 0x16; /// IP TTL
-    static const uint8_t Sx_TX_FSR0  = 0x20; /// TX FRee size
+    static const uint8_t Sx_PROTO    = 0x14;    /// Protocol in raw mode
+    static const uint8_t Sx_TOS      = 0x15;    /// IP TOS
+    static const uint8_t Sx_TTL      = 0x16;    /// IP TTL
+    static const uint8_t Sx_TX_FSR0  = 0x20;    /// TX FRee size
     static const uint8_t Sx_TX_FSR1  = 0x21;
-    static const uint8_t Sx_TX_RD0   = 0x22; /// TX Read pointer
+    static const uint8_t Sx_TX_RD0   = 0x22;    /// TX Read pointer
     static const uint8_t Sx_TX_RD1   = 0x23;
-    static const uint8_t Sx_TX_WR0   = 0x24; /// TX write Pointer
+    static const uint8_t Sx_TX_WR0   = 0x24;    /// TX write Pointer
     static const uint8_t Sx_TX_WR1   = 0x25;
-    static const uint8_t Sx_RX_RSR0  = 0x26; /// RX Received size
+    static const uint8_t Sx_RX_RSR0  = 0x26;    /// RX Received size
     static const uint8_t Sx_RX_RSR1  = 0x27;
-    static const uint8_t Sx_RX_RD0   = 0x28; /// RX Read Pointer
+    static const uint8_t Sx_RX_RD0   = 0x28;    /// RX Read Pointer
     static const uint8_t Sx_RX_RD1   = 0x29;
     private:
     friend Network;
@@ -222,3 +226,74 @@ uint8_t wiznet::setIpData(){
 #endif
 }
 #endif
+
+
+
+class Server{
+public:
+    Server(uint8_t number);
+    setPort();
+    setPort(uint8_t laag);
+    setPort(uint8_t hoog, uint8_t laag);
+    setPort(uint16_t getal);
+
+    void start();            // initalizatie
+    void listen();                   // luisteren voor binnen koment verkeer
+    void established();              // is er een verbinding tot stand gekomen?
+    void receivedData();             // data ontvangen?
+    void receivingData();            // er komt data binnen, nu verwerken
+    void sendData();                 // verstuur data
+    void gotFin();                   // fin: einde verbinding ontvangen?
+    void closed();                   // verbinding is verbroken (denk ik)
+    void timeout();                  // Timeout in de verbinding
+    void close();                    // sluit de verbinding
+private:
+    const static uint8_t OPEN      0x01;
+    const static uint8_t LISTEN    0x02;
+    const static uint8_t CONNECT   0x04;
+    const static uint8_t DISCON    0x08;
+    const static uint8_t CLOSE     0x10;
+    const static uint8_t SEND      0x20;
+    const static uint8_t SEND_MAC  0x21;
+    const static uint8_t SEND_KEEP 0x22;
+    const static uint8_t RESV      0x40;
+
+    uint8_t port[1];
+    uint8_t status;
+    uint8_t state;
+
+    uint8_t sNr;                     // socket nummer
+
+    uint16_t timeoutTimer; // verzin hier nog wat leuks mee
+};
+
+Server::Server(uint8_t number){
+    if (number >= 0 && number =< 3)
+        sNr = number +4;
+    else
+        number = 0;
+}
+Server::setPort():port{0,80}{ }
+Server::setPort(uint8_t laag):port{0,laag}{ }
+Server::setPort(uint8_t hoog, uint8_t laag):port{hoog,laag}{ }
+Server::setPort(uint16_t getal){
+    port[1] = getal;
+    port[0] = (getal>>8);   // werkt dit?
+}
+          
+          
+void Server::start(){                               // 0x13 - initalizatie
+    wiz.write(sNr, wiz.Sx_CR, 0x01);                //      Set Mode (to tcp)
+    wiz.write(sNr, wiz.Sx_PORT0, port[0]);          //      Set port
+    wiz.write(sNr, wiz.Sx_PORT1, port[1]);          //
+    wiz.write(sNr, wiz.Sx_CR, OPEN); 
+}
+void Server::listen(){ }                            // 0x14 - luisteren voor binnen koment verkeer
+void Server::established(){ }                       // 0x17 - is er een verbinding tot stand gekomen?
+void Server::receivedData(){ }                      // data ontvangen?
+void Server::receivingData(){ }                     // er komt data binnen, nu verwerken
+void Server::sendData(){ }                          // verstuur data
+void Server::gotFin(){ }                            // 0x18 - fin: einde verbinding ontvangen?
+void Server::closed(){ }                            // 0x00-verbinding is verbroken (denk ik)
+void Server::timeout(){ }                           // Timeout in de verbinding
+void Server::close(){ }                             // sluit de verbinding
