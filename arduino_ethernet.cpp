@@ -10,7 +10,7 @@
 #include "spi.cpp"
 #include "ethernet.cpp"
 
-testdfsafa
+
 /// Debug 1 = on, 0 = off
 //#define debug  // decomment to disable debug information
 #ifdef debug
