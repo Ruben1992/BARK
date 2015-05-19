@@ -333,6 +333,7 @@ private:
     uint8_t retrycounter;
     uint16_t timeoutTimer; // verzin hier nog wat leuks mee
     uint16_t read2byte(uint8_t group, uint8_t high, uint8_t low);
+    void write2byte(uint8_t group, uint8_t regHigh, uint8_t regLow, uint16_t data);
 
 };
 
@@ -384,6 +385,7 @@ int Server::checkEstablished(){                         // 0x17 - is er een verb
 uint16_t Server::receivedData(){                          // data ontvangen?
     return read2byte(sNr, wiz.Sn_RX_RSR0, wiz.Sn_RX_RSR1);
 }
+
 void Server::receivingData(){                       // er komt data binnen, nu verwerken
 
     //get_size = Sn_RX_RSR; // get the received size
@@ -423,13 +425,20 @@ void Server::receivingData(){                       // er komt data binnen, nu v
     }
     else{
         /* copy get_size bytes of get_start_address to destination_addr */
-        memcpy(get_start_address, buffer, get_size);
+        wiz.readRx(buffer[], sNr, get_start_address, get_size);
+        //memcpy(get_start_address, buffer, get_size);
     }
 
+    /* increase Sn_RX_RD as length of get_size */
+    uint16_t temp = read2byte(sNr, wiz.Sn_RX_RD0, wiz.Sn_RX_RD1) + get_size;
+    write2byte(sNr, wiz.Sn_RX_RD0, wiz.Sn_RX_RD1, temp);
 
-
-
+    /* set RECV command */
+    wiz.write(sNr, wiz.Sn_CR, CR.RESV);
 }
+
+
+
 void Server::sendData(uint8_t data[], uint16_t length){                            // verstuur data
     const static uint16_t mask = 0x07FF;
     uint16_t freeSpace = read2byte(sNr, wiz.Sn_TX_RSR0, wiz.Sn_TX_RSR1);
@@ -449,6 +458,13 @@ void Server::close(){ }                             // sluit de verbinding
 
 uint16_t Server::read2byte(uint8_t group, uint8_t high, uint8_t low){ // lees 2 bytes uit en plaats ze in een word
     uint16_t _high = (uint16_t) wiz.read(group, high);
-    uint16_t _low = (uint16_t) wiz.read(group, low);
+    uint16_t _low  = (uint16_t) wiz.read(group, low);
     return ((_high<<8) + _low);
+}
+void Server::write2byte(uint8_t group, uint8_t regHigh, uint8_t regLow, uint16_t data){
+    uint8_t dataLow  = data;
+    uint8_t datahigh = (data>>8);
+
+    wiz.write(group, regHigh, datahigh);
+    wiz.write(group, regLow, dataLow);
 }
