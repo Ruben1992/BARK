@@ -418,7 +418,7 @@ void Server::receivingData(){                       // er komt data binnen, nu v
         /* copy left_size bytes of gSn_RX_BASE to destination_addr */
         left_size = get_size - upper_size;
 
-        memcpy(gSn_RX_BASE, buffer , get_size);
+        //memcpy(gSn_RX_BASE, buffer , get_size);
         wiz.readRx(buffer[upper_size], sNr, gSn_RX_BASE, left_size);
     }
     else{
