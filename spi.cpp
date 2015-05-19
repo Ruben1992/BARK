@@ -1,6 +1,6 @@
-#ifndef __STDINT_H_
 #include <stdint.h>
-#endif
+#define tempTestMode 0
+
 
 #ifndef __SPI_cpp_
     #define __SPI_cpp_
@@ -31,6 +31,7 @@
         #define PORT_SPI0 PORTB
 
         void SPI::init(){ 
+            #if tempTestMode
             PORT_SPI0 |= (1<<DD_SS); // slave select
             /* Set MOSI and SCK output, all others input */
             DDR_SPI = (1<<DD_MOSI)|(1<<DD_SCK|(1<<DD_SS));
@@ -38,8 +39,10 @@
             SPCR = (1<<SPE)|(1<<MSTR);
             /* Double speed mode, want sneller is beter */
             SPSR |= (1<<SPI2X);  
+            #endif
         }
         uint8_t SPI::trans(uint8_t cData){
+            #if tempTestMode
             /* Start transmission */
             PORT_SPI0 &= ~(1<<DD_SS);
             SPDR = cData;
@@ -47,6 +50,10 @@
             while(!(SPSR & (1<<SPIF)));
             PORT_SPI0 |= (1<<DD_SS);
             return SPDR;
+            
+            #else 
+                return 0;
+            #endif
         }
     #endif
     // void SPI_init_master (void)

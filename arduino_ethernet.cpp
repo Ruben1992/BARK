@@ -72,8 +72,7 @@ void loop()
   
 // }
 
-#ifdef debug
-//  Serial.print("\tsetting up Rx and Tx size to 2kB");
+////  Serial.print("\tsetting up Rx and Tx size to 2kB");
 //#endif
 
 
