@@ -419,7 +419,7 @@ void Server::receivingData(){                       // er komt data binnen, nu v
         left_size = get_size - upper_size;
 
         memcpy(gSn_RX_BASE, buffer , get_size);
-        wiz.readRx(buffer[upper_size], sNr, get_start_address, upper_size);
+        wiz.readRx(buffer[upper_size], sNr, gSn_RX_BASE, left_size);
     }
     else{
         /* copy get_size bytes of get_start_address to destination_addr */
