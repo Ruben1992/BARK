@@ -8,6 +8,7 @@
 #define bufferSize 2048
 /// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #define gSn_RX_MASK 0x07FF
+#define gSn_TX_MASK 0x07FF
 
 class Network{
 public:
@@ -174,9 +175,9 @@ uint8_t wiznet::write(uint8_t regGroup, uint8_t reg, uint8_t data){ /// return -
     n += spi.trans(regGroup);     // n + 1 = 1, when ok
     n += spi.trans(reg);          // n + 2 = 3, when ok
     n += spi.trans(data);         // n + 3 = 6, when ok
-#ifdef debug
-  Serial.print(n);
-#endif
+    #ifdef debug
+    Serial.print(n);
+    #endif
     return n; // should return 6 when all ok
 }
 
@@ -259,7 +260,7 @@ public:
     int checkEstablished();         // is er een verbinding tot stand gekomen?
     uint16_t receivedData();             // data ontvangen?
     void receivingData();            // er komt data binnen, nu verwerken
-    void sendData();                 // verstuur data
+    int sendData();                 // verstuur data
     void gotFin();                   // fin: einde verbinding ontvangen?
     void closed();                   // verbinding is verbroken (denk ik)
     void timeout();                  // Timeout in de verbinding
@@ -321,10 +322,6 @@ private:
         const static uint8_t ARP            = 0X11; /// kan ook op address 21, 31 zijn, (zie datasheet)
     }SR;
 
-
-
-
-
     uint8_t port[1];
     uint8_t status;
     uint8_t state;
@@ -354,8 +351,6 @@ void Server::setPort(uint16_t getal){
     port[1] = getal;
     port[0] = (getal>>8);   // werkt dit?
 }
-
-
 int Server::start(){                               // 0x13 - initalizatie
     wiz.write(sNr, wiz.Sn_CR, MR.TCP);                  //      Set Mode (to tcp)
     wiz.write(sNr, wiz.Sn_PORT0, port[0]);              //      Set port
@@ -439,14 +434,56 @@ void Server::receivingData(){                       // er komt data binnen, nu v
 
 
 
-void Server::sendData(uint8_t data[], uint16_t length){                            // verstuur data
-    const static uint16_t mask = 0x07FF;
+int Server::sendData(uint8_t data[], uint16_t length){                            // verstuur data
+
+
+    uint16_t gSn_RX_BASE = 0x6000 + (gSn_RX_MASK + 1) * number;      /// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
     uint16_t freeSpace = read2byte(sNr, wiz.Sn_TX_RSR0, wiz.Sn_TX_RSR1);
     if (length > freeSpace){
         return 0;   /// not enough space to send data
     }
 
+    //get_offset = Sn_TX_WD & gSn_TX_MASK;  // calculate the offset address
+    // Sn_TX_WD -> write pointer register
+    // gSn_TX_MASK -> 2k-1 = 2047 = 0x07FF   /// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    uint16_t get_offset = (read2byte(sNr, wiz.Sn_TX_WD0, wiz.Sn_TX_WD1) & gSn_TX_MASK);
 
+    //get_start_address = gSn_RX_BASE + get_offset;  // calculate the start address (physical address)
+    // gSn_RX_BASE -> ????  sNr ????
+
+    uint16_t gSn_TX_BASE = 0x4000 + (gSn_TX_MASK + 1) * number;      /// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    uint16_t get_start_address = gSn_TX_BASE + get_offset;
+
+    if ( (get_offset + length) > (gSn_TX_MASK + 1)){
+        /* Copy upper_size bytes of source_addr to get_stat_address*/
+        uint16_t upper_size = (gSn_TX_MASK + 1) - get_offset;
+        writeTx(uint8_t data[], uint8_t sNr, uint16_t get_start_address, uint16_t upper_size);
+        /* update source addr* */
+        //destination_addr += upper_size;
+        
+        /* copy left_size bytes of source_addr to gSn_TX_BASE */
+        uint16_t left_size = length - upper_size;
+        writeTx(uint8_t data[upper_size], uint8_t sNr, uint16_t gSn_TX_BASE, uint16_t left_size);
+    }
+    else{
+        /* copy send_size bytes of source_addr to get_start_address */
+        writeTx(uint8_t data[], uint8_t sNr, uint16_t get_start_address, uint16_t length);
+    }
+    /* Increase Sn_TX_WR as length of send_size */
+    uint16_t temp = read2byte(sNr, wiz.Sn_TX_WR0, wiz.Sn_TX_WR1) + length;
+    /* set SEND command */
+    wiz.write(sNr, wiz.sn_CR, CR.SEND);
+
+    /* increase Sn_RX_RD as length of get_size */
+    uint16_t temp = read2byte(sNr, wiz.Sn_RX_RD0, wiz.Sn_RX_RD1) + get_size;
+    write2byte(sNr, wiz.Sn_RX_RD0, wiz.Sn_RX_RD1, temp);
+
+    /* set RECV command */
+    wiz.write(sNr, wiz.Sn_CR, CR.RESV);
 
 }
 
