@@ -1,13 +1,20 @@
-#define atmega328p
+
 #ifndef __ethernet_cpp_
 #define __ethernet_cpp_
+#include <avr/io.h>
+
 #include <stdint.h>
 #include "spi.cpp"
-#include <cstring>
+#include <string.h>
+
+
+
+
 
 #define bufferSize 2048
 /// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #define gSn_RX_MASK 0x07FF
+#define gSn_TX_MASK 0x07FF
 
 class Network{
 public:
@@ -174,9 +181,9 @@ uint8_t wiznet::write(uint8_t regGroup, uint8_t reg, uint8_t data){ /// return -
     n += spi.trans(regGroup);     // n + 1 = 1, when ok
     n += spi.trans(reg);          // n + 2 = 3, when ok
     n += spi.trans(data);         // n + 3 = 6, when ok
-#ifdef debug
-  Serial.print(n);
-#endif
+    #ifdef debug
+    Serial.print(n);
+    #endif
     return n; // should return 6 when all ok
 }
 
@@ -195,7 +202,7 @@ void wiznet::readRx(uint8_t dest[], uint8_t sNr, uint16_t startAdress, uint16_t 
 void wiznet::writeTx(uint8_t source[], uint8_t sNr, uint16_t startAdress, uint16_t length){
     uint16_t i;
     for (i = 0; i < length; i++){
-        write(uint8_t sNr, uint8_t startAdress+i, uint8_t source[i]); /// return -1 on error
+        write(sNr, startAdress+i, source[i]); /// return -1 on error
     }
 }
 
@@ -241,9 +248,7 @@ uint8_t wiznet::setIpData(){
     Serial.println("");
 #endif
 }
-#endif
-
-
+//#endif
 
 class Server{
 public:
@@ -256,49 +261,51 @@ public:
 
     int start();            // initalizatie
     int listen();                    // luisteren voor binnen koment verkeer
-    int checkEstablished();         // is er een verbinding tot stand gekomen?
-    uint16_t receivedData();             // data ontvangen?
+    int checkEstablished();          // is er een verbinding tot stand gekomen?
+    uint16_t receivedData();         // data ontvangen?
     void receivingData();            // er komt data binnen, nu verwerken
-    void sendData();                 // verstuur data
+    int sendData(uint8_t data[], uint16_t length);                           // verstuur data
     void gotFin();                   // fin: einde verbinding ontvangen?
     void closed();                   // verbinding is verbroken (denk ik)
-    void timeout();                  // Timeout in de verbinding
+    int timeout();                  // Timeout in de verbinding
     void close();                    // sluit de verbinding
+    uint8_t getStatus();
+    void disconnect();                     // sluit de vebinding netjes af
 private:
 
     struct MODE{
-        const static uint8_t MULTI   = (1<<7);
-        const static uint8_t ND_MC   = (1<<5);
-        const static uint8_t P3      = (1<<3);
-        const static uint8_t P2      = (1<<2);
-        const static uint8_t P1      = (1<<1);
-        const static uint8_t P0      = (1<<0);
-        const static uint8_t CLOSED  =  0x00;
-        const static uint8_t TCP     =  0x01;
-        const static uint8_t UDP     =  0x02;
-        const static uint8_t IPRAW   =  0x03;
-        const static uint8_t MACRAW  =  0x04;
-        const static uint8_t PPPoE   =  0x05;
+        const static uint8_t MULTI          = 1<<7;
+        const static uint8_t ND_MC          = 1<<5;
+        const static uint8_t P3             = 1<<3;
+        const static uint8_t P2             = 1<<2;
+        const static uint8_t P1             = 1<<1;
+        const static uint8_t P0             = 1<<0;
+        const static uint8_t CLOSED         = 0x00;
+        const static uint8_t TCP            = 0x01;
+        const static uint8_t UDP            = 0x02;
+        const static uint8_t IPRAW          = 0x03;
+        const static uint8_t MACRAW         = 0x04;
+        const static uint8_t PPPoE          = 0x05;
     }MR;
 
     struct COMMAND{
-        const static uint8_t OPEN      = 0x01;
-        const static uint8_t LISTEN    = 0x02;
-        const static uint8_t CONNECT   = 0x04;
-        const static uint8_t DISCON    = 0x08;
-        const static uint8_t CLOSE     = 0x10;
-        const static uint8_t SEND      = 0x20;
-        const static uint8_t SEND_MAC  = 0x21;
-        const static uint8_t SEND_KEEP = 0x22;
-        const static uint8_t RESV      = 0x40;
+        const static uint8_t OPEN           = 0x01;
+        const static uint8_t LISTEN         = 0x02;
+        const static uint8_t CONNECT        = 0x04;
+        const static uint8_t DISCON         = 0x08;
+        const static uint8_t CLOSE          = 0x10;
+        const static uint8_t SEND           = 0x20;
+        const static uint8_t SEND_MAC       = 0x21;
+        const static uint8_t SEND_KEEP      = 0x22;
+        const static uint8_t RESV           = 0x40;
     }CR;
 
     struct INTERRUPT{
-        const static uint8_t SEND_OK    = (1<<4);
-        const static uint8_t TIMEOUT    = (1<<3);
-        const static uint8_t RECV       = (1<<2);
-        const static uint8_t DISCON     = (1<<1);
-        const static uint8_t CON        = (1<<0);
+        const static uint8_t SEND_OK        = 1<<4;
+        const static uint8_t TIMEOUT        = 1<<3;
+        const static uint8_t RECV           = 1<<2;
+        const static uint8_t DISCON         = 1<<1;
+        const static uint8_t CON            = 1<<0;
     }IR;
 
     struct STATUS{
@@ -321,11 +328,7 @@ private:
         const static uint8_t ARP            = 0X11; /// kan ook op address 21, 31 zijn, (zie datasheet)
     }SR;
 
-
-
-
-
-    uint8_t port[1];
+    uint8_t port[2];
     uint8_t status;
     uint8_t state;
 
@@ -333,8 +336,10 @@ private:
     uint8_t retrycounter;
     uint16_t timeoutTimer; // verzin hier nog wat leuks mee
     uint16_t read2byte(uint8_t group, uint8_t high, uint8_t low);
+    void write2byte(uint8_t group, uint8_t regHigh, uint8_t regLow, uint16_t data);
 
 };
+
 
 Server::Server(uint8_t Number){
     if (Number >= 0 && Number <= 3){
@@ -353,8 +358,6 @@ void Server::setPort(uint16_t getal){
     port[1] = getal;
     port[0] = (getal>>8);   // werkt dit?
 }
-
-
 int Server::start(){                               // 0x13 - initalizatie
     wiz.write(sNr, wiz.Sn_CR, MR.TCP);                  //      Set Mode (to tcp)
     wiz.write(sNr, wiz.Sn_PORT0, port[0]);              //      Set port
@@ -384,6 +387,7 @@ int Server::checkEstablished(){                         // 0x17 - is er een verb
 uint16_t Server::receivedData(){                          // data ontvangen?
     return read2byte(sNr, wiz.Sn_RX_RSR0, wiz.Sn_RX_RSR1);
 }
+
 void Server::receivingData(){                       // er komt data binnen, nu verwerken
 
     //get_size = Sn_RX_RSR; // get the received size
@@ -409,46 +413,120 @@ void Server::receivingData(){                       // er komt data binnen, nu v
         uint16_t upper_size = (gSn_RX_MASK + 1) - get_offset;
 //    void readRx(uint8_t dest[], uint8_t sNr, uint16_t startAdress, uint16_t length);
 
-        wiz.readRx(buffer[], sNr, get_start_address, upper_size);
+        wiz.readRx(buffer, sNr, get_start_address, upper_size);
 
         //memcpy(get_start_address, buffer , upper_size);
         /*update destination_addr*/
         //destination_addr += upper_size;
 
         /* copy left_size bytes of gSn_RX_BASE to destination_addr */
-        left_size = get_size - upper_size;
+        uint16_t left_size = get_size - upper_size;
 
-        memcpy(gSn_RX_BASE, buffer , get_size);
-        wiz.readRx(buffer[upper_size], sNr, gSn_RX_BASE, left_size);
+        //memcpy(gSn_RX_BASE, buffer , get_size);
+        wiz.readRx(&buffer[upper_size], sNr, gSn_RX_BASE, left_size);
+
     }
     else{
         /* copy get_size bytes of get_start_address to destination_addr */
-        memcpy(get_start_address, buffer, get_size);
+        wiz.readRx(buffer, sNr, get_start_address, get_size);
+        //memcpy(get_start_address, buffer, get_size);
     }
 
+    /* increase Sn_RX_RD as length of get_size */
+    uint16_t temp = read2byte(sNr, wiz.Sn_RX_RD0, wiz.Sn_RX_RD1) + get_size;
+    write2byte(sNr, wiz.Sn_RX_RD0, wiz.Sn_RX_RD1, temp);
 
-
-
+    /* set RECV command */
+    wiz.write(sNr, wiz.Sn_CR, CR.RESV);
 }
-void Server::sendData(uint8_t data[], uint16_t length){                            // verstuur data
-    const static uint16_t mask = 0x07FF;
-    uint16_t freeSpace = read2byte(sNr, wiz.Sn_TX_RSR0, wiz.Sn_TX_RSR1);
+
+
+
+int Server::sendData(uint8_t data[], uint16_t length){                            // verstuur data
+
+
+    uint16_t gSn_RX_BASE = 0x6000 + (gSn_RX_MASK + 1) * number;      /// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+    uint16_t freeSpace = read2byte(sNr, wiz.Sn_TX_FSR0, wiz.Sn_TX_FSR1);
     if (length > freeSpace){
         return 0;   /// not enough space to send data
     }
 
+    //get_offset = Sn_TX_WD & gSn_TX_MASK;  // calculate the offset address
+    // Sn_TX_WD -> write pointer register
+    // gSn_TX_MASK -> 2k-1 = 2047 = 0x07FF   /// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    uint16_t get_offset = (read2byte(sNr, wiz.Sn_TX_RD0, wiz.Sn_TX_RD1) & gSn_TX_MASK);
 
+    //get_start_address = gSn_RX_BASE + get_offset;  // calculate the start address (physical address)
+    // gSn_RX_BASE -> ????  sNr ????
 
+    uint16_t gSn_TX_BASE = 0x4000 + (gSn_TX_MASK + 1) * number;      /// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    uint16_t get_start_address = gSn_TX_BASE + get_offset;
+
+    if ( (get_offset + length) > (gSn_TX_MASK + 1)){
+        /* Copy upper_size bytes of source_addr to get_stat_address*/
+        uint16_t upper_size = (gSn_TX_MASK + 1) - get_offset;
+        wiz.writeTx(data, sNr, get_start_address, upper_size);
+        /* update source addr* */
+        //destination_addr += upper_size;
+
+        /* copy left_size bytes of source_addr to gSn_TX_BASE */
+        uint16_t left_size = length - upper_size;
+        wiz.writeTx(&data[upper_size], sNr, gSn_TX_BASE, left_size);
+    }
+    else{
+        /* copy send_size bytes of source_addr to get_start_address */
+        wiz.writeTx(data, sNr, get_start_address, length);
+    }
+    /* Increase Sn_TX_WR as length of send_size */
+    uint16_t temp = read2byte(sNr, wiz.Sn_TX_WR0, wiz.Sn_TX_WR1) + length;
+    /* set SEND command */
+    wiz.write(sNr, wiz.Sn_CR, CR.SEND);
 }
 
 
-void Server::gotFin(){ }                            // 0x18 - fin: einde verbinding ontvangen?
-void Server::closed(){ }                            // 0x00-verbinding is verbroken (denk ik)
-void Server::timeout(){ }                           // Timeout in de verbinding
-void Server::close(){ }                             // sluit de verbinding
+void Server::gotFin(){                              // 0x18 - fin: einde verbinding ontvangen?
+    if (wiz.read(sNr, wiz.Sn_IR) & IR.DISCON){          // if disconnect request is fount (FIN), then close the connection
+        disconnect();
+    }
+}
+void Server::closed(){                              // de verbinding is (netjes,toch?)verbroken vanaf de anderekant
+    if (wiz.read(sNr, wiz.Sn_IR) & IR.DISCON){          // if disconnect request is fount (FIN), then close the connection
+        disconnect();
+    }
+}
+int Server::timeout(){                             // check voor timeout
+    if (wiz.read(sNr, wiz.Sn_IR) & IR.TIMEOUT){
+        close();
+        return 1;
+    }
+    return 0;
+}
+void Server::close(){                               // sluit de vieze methode
+    wiz.write(sNr, wiz.Sn_CR, CR.CLOSE);
+}
+void Server::disconnect(){                          // sluit de vebinding netjes af
+    wiz.write(sNr, wiz.Sn_CR, CR.DISCON);
+}
+uint8_t Server::getStatus(){                           // get status van de socket
+    return wiz.read(sNr, wiz.Sn_SR);
+}
 
 uint16_t Server::read2byte(uint8_t group, uint8_t high, uint8_t low){ // lees 2 bytes uit en plaats ze in een word
     uint16_t _high = (uint16_t) wiz.read(group, high);
-    uint16_t _low = (uint16_t) wiz.read(group, low);
+    uint16_t _low  = (uint16_t) wiz.read(group, low);
     return ((_high<<8) + _low);
 }
+void Server::write2byte(uint8_t group, uint8_t regHigh, uint8_t regLow, uint16_t data){
+    uint8_t dataLow  = data;
+    uint8_t datahigh = (data>>8);
+
+    wiz.write(group, regHigh, datahigh);
+    wiz.write(group, regLow, dataLow);
+}
+
+
+#endif
