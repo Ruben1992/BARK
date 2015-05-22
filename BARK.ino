@@ -1,5 +1,6 @@
 /*
  */
+
 #include <stdint.h>
 #define dummy 0x14
 #define __AVR_ATmega328P__
@@ -7,53 +8,39 @@
 #include <avr/io.h>
 //#include <stdio.h>
 
+#include "spi.hpp"
+#include "ethernet.hpp"
 
-#include "ethernet.cpp"
-
-
-/// Debug 1 = on, 0 = off
-//#define debug  // decomment to disable debug information
-#ifdef debug
-	char buffer[100]; // SerialOut buffer;
-#endif
 
 void setup(){
-  /// init SPI
-
-
-
-
-/// Define IO
-#ifdef debug
+    delay(500); // ff opstart tijd geven
+    spi.init();
     Serial.begin(115200);
-#endif
-    // Insert code    
-#ifdef debug
-    Serial.println("Init");
-#endif
-    // wiz.setIpData();
+    delay(1);
 }
+
 void loop()
 {
-	init();
-    spi.init();
-
-    Server sock0(0);
-
+    //spi.init();
 
     // wiz.setIpData();
     //wiz.write(wiz.R_com, wiz.C_Mode, sock0.MR.TCP);
+    wiz.setIpData();
+    delay(500);
+    //Server sock0(0); // open socket 0, op 0
 
 
-    while(1){
-    ///while (SPI_write(wiz.r_com, wiz.c_Mode, 5) != -1);
+    // sock0.setPort(2000);
+    // Serial.print("Status = ");
+    // Serial.println(sock0.getStatus());
 
-    }
+    // sock0.start();
+    // Serial.print("Status = ");
+    // Serial.println(sock0.getStatus());    
+
+    // sock0.listen();
+    // Serial.print("Status = ");
+    // Serial.println(sock0.getStatus());  
+
 }
-
-
-
-
-
-
 
