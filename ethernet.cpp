@@ -1,9 +1,15 @@
-#define atmega328p
+
 #ifndef __ethernet_cpp_
 #define __ethernet_cpp_
+#include <avr/io.h>
+
 #include <stdint.h>
 #include "spi.cpp"
-#include <cstring>
+#include <string.h>
+
+
+
+
 
 #define bufferSize 2048
 /// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -242,8 +248,7 @@ uint8_t wiznet::setIpData(){
     Serial.println("");
 #endif
 }
-#endif
-
+//#endif
 
 class Server{
 public:
@@ -264,7 +269,7 @@ public:
     void closed();                   // verbinding is verbroken (denk ik)
     int timeout();                  // Timeout in de verbinding
     void close();                    // sluit de verbinding
-    uint8_t getStatus(); 
+    uint8_t getStatus();
     void disconnect();                     // sluit de vebinding netjes af
 private:
 
@@ -323,7 +328,7 @@ private:
         const static uint8_t ARP            = 0X11; /// kan ook op address 21, 31 zijn, (zie datasheet)
     }SR;
 
-    uint8_t port[1];
+    uint8_t port[2];
     uint8_t status;
     uint8_t state;
 
@@ -334,6 +339,7 @@ private:
     void write2byte(uint8_t group, uint8_t regHigh, uint8_t regLow, uint16_t data);
 
 };
+
 
 Server::Server(uint8_t Number){
     if (Number >= 0 && Number <= 3){
@@ -466,7 +472,7 @@ int Server::sendData(uint8_t data[], uint16_t length){                          
         wiz.writeTx(data, sNr, get_start_address, upper_size);
         /* update source addr* */
         //destination_addr += upper_size;
-        
+
         /* copy left_size bytes of source_addr to gSn_TX_BASE */
         uint16_t left_size = length - upper_size;
         wiz.writeTx(&data[upper_size], sNr, gSn_TX_BASE, left_size);
@@ -486,7 +492,6 @@ void Server::gotFin(){                              // 0x18 - fin: einde verbind
     if (wiz.read(sNr, wiz.Sn_IR) & IR.DISCON){          // if disconnect request is fount (FIN), then close the connection
         disconnect();
     }
-
 }
 void Server::closed(){                              // de verbinding is (netjes,toch?)verbroken vanaf de anderekant
     if (wiz.read(sNr, wiz.Sn_IR) & IR.DISCON){          // if disconnect request is fount (FIN), then close the connection
@@ -524,3 +529,4 @@ void Server::write2byte(uint8_t group, uint8_t regHigh, uint8_t regLow, uint16_t
 }
 
 
+#endif
