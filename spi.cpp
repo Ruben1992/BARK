@@ -8,11 +8,21 @@
 
     #ifdef __AVR_ATmega328P__
         // uc supported :D
+    #elif defined __AVR_ATmega1280__
+        
     #else
         #error "please the define the used microcontroller like "#define __AVR_ATmega328P__""
         #error "if you did define it correctly, then we do not support your microcontroller, sorry :("
     #endif
 
+    #ifdef __AVR_ATmega328P__
+
+        #define DDR_SPI DDRB 
+        #define DD_MOSI 5  
+        #define DD_SCK 3   
+        #define DD_SS 2     
+        #define PORT_SPI0 PORTB
+    #endif
     #ifdef __AVR_ATmega328P__
 
         #define DDR_SPI DDRB 
@@ -39,6 +49,8 @@
         while(!(SPSR & (1<<SPIF)));
         PORT_SPI0 |= (1<<DD_SS);
         return SPDR;
+        return 0;
     }
+
     SPI spi;    
 #endif
