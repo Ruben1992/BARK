@@ -117,7 +117,6 @@ uint8_t wiznet::setIpData(){
 //#endif
 
 
-
 Server::Server(uint8_t x){
     if (x >= 0 && x <= 3){
         sNr    = x +4;
@@ -128,16 +127,8 @@ Server::Server(uint8_t x){
         number = 95;
     }
 }
-Server::Server(uint16_t x){
-    if (x >= 0 && x <= 3){
-        sNr    = x +4;
-        number = x;
-    }
-    else{
-        sNr    = 99; /// ERROR
-        number = 95;
-    }
-}
+
+
 void Server::setPort(){                             port[0] = 0;    port[1] = 80;}
 void Server::setPort(uint8_t laag){                 port[0] = 0;    port[1] = laag;}
 void Server::setPort(uint8_t hoog, uint8_t laag){   port[0] = hoog; port[1] = laag;}

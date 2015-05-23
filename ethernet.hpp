@@ -145,7 +145,6 @@ class Server{
 public:
     uint8_t buffer[bufferSize];
 
-    Server(uint16_t x);
     Server(uint8_t x);
 
     void setPort();

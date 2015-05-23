@@ -64,7 +64,7 @@ void loop()
     delay(500);
     Serial.println("");
     Serial.println("\t sock init");
-    Server sock0((uint16_t)0); // open socket 0, op 0
+    Server sock0((uint8_t)0); // open socket 0, op 0
     Serial.println("end sock");
     while(1);
     //sock0.setPort(2000);
