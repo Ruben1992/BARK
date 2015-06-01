@@ -1,14 +1,7 @@
-#ifndef __ethernet_h_
-#define __ethernet_h_
 
-#include <stdint.h>
-#include "spi.cpp"
-#include <string.h>
 
-#define bufferSize 2048
-/// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#define gSn_RX_MASK 0x07FF
-#define gSn_TX_MASK 0x07FF
+#ifndef __ethernet_hpp_
+#define __ethernet_hpp_
 
 class Network{
 public:
@@ -25,14 +18,16 @@ public:
     uint8_t SNM[4];
 private:
 
-}ip;
+};
+
+extern Network ip;
 
 class wiznet{
     public:
     uint8_t read(uint8_t regGroup, uint8_t reg); /// return -1 on error
     uint8_t write(uint8_t regGroup, uint8_t reg, uint8_t data); /// return -1 on error
-    void writeTx(uint8_t source[], uint8_t sNr, uint16_t startAdress, uint16_t length);
-    void readRx(uint8_t dest[], uint8_t sNr, uint16_t startAdress, uint16_t length);
+    void writeTx(uint8_t source[], /*uint8_t sNr,*/ uint16_t startAdress, uint16_t length);
+    void readRx(uint8_t dest[], /*uint8_t sNr,*/ uint16_t startAdress, uint16_t length);
     uint8_t setIpData();
 
 
@@ -139,34 +134,41 @@ class wiznet{
     private:
     friend Network;
 
-}wiz;
+};
 
-
-
-#endif
-
+extern wiznet wiz;
 
 class Server{
 public:
-    uint8_t buffer[bufferSize];
-    Server(uint8_t number);
+    //uint8_t buffer[];
+
+    Server(uint8_t x);
+
     void setPort();
     void setPort(uint8_t laag);
     void setPort(uint8_t hoog, uint8_t laag);
     void setPort(uint16_t getal);
 
-    int start();            // initalizatie
-    int listen();                    // luisteren voor binnen koment verkeer
-    int checkEstablished();          // is er een verbinding tot stand gekomen?
-    uint16_t receivedData();         // data ontvangen?
-    void receivingData();            // er komt data binnen, nu verwerken
-    int sendData(uint8_t data[], uint16_t length);                           // verstuur data
-    void gotFin();                   // fin: einde verbinding ontvangen?
-    void closed();                   // verbinding is verbroken (denk ik)
-    int timeout();                  // Timeout in de verbinding
-    void close();                    // sluit de verbinding
-    uint8_t getStatus(); 
-    void disconnect();                     // sluit de vebinding netjes af
+    //void setDestination(uint8_t a, uint8_t b, uint8_t c, uint8_t d);
+
+
+    int         start();               // Initialize connection
+    int         listen();              // Start listning on a the specified port
+    int        receivingData(uint8_t buffer[], uint16_t maxSize);       // reads the RX buffer on the wiznet
+    int         sendData(uint8_t data[], uint16_t length);            // send data to the TX buffer
+
+    int         checkEstablished();    // checks if the connection is established
+    uint16_t    receivedData();        // checks how many byte of data we received and returns that value
+    void        gotFin();              // checks if we received a fin (finshed) bit
+    void        closed();              // checks if the connections is closed from the other side and if it is, it will call the disconnect function
+    int         timeout();             // checks if the connection timedout
+    
+    void        close();               // close the connection (dirty)
+    void        disconnect();          // close the connection (clean)
+    uint8_t     getStatus();           // reads the status register of the socket
+
+
+
 private:
 
     struct MODE{
@@ -193,7 +195,7 @@ private:
         const static uint8_t SEND           = 0x20;
         const static uint8_t SEND_MAC       = 0x21;
         const static uint8_t SEND_KEEP      = 0x22;
-        const static uint8_t RESV           = 0x40;
+        const static uint8_t RECV           = 0x40;
     }CR;
 
     struct INTERRUPT{
@@ -225,7 +227,6 @@ private:
     }SR;
 
     uint8_t port[2];
-    uint8_t status;
     uint8_t state;
 
     uint8_t sNr, number;                     // socket nummer
@@ -235,4 +236,7 @@ private:
     void write2byte(uint8_t group, uint8_t regHigh, uint8_t regLow, uint16_t data);
 
 };
+
+#endif
+
 
