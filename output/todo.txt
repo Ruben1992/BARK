@@ -1,0 +1,34 @@
+Todo
+/* nog te programeren */
+* 	eigen uart (serial print)
+* 	i2c
+*	digitale potmeter library
+*	flowserial implenteren
+*	Rotary encode ??
+
+
+
+/* opruimen */
+* 	onodige code spi weghalen***************************************************************************************DONE
+
+
+
+
+
+
+
+/* Debug ideas!! */
+
+* 	andere compiler instellen (zonder arduino)
+		#TRY: arduino direct geprogammerd (puur c, en zonder arduino ide) met avr-gcc & avrdude + isp ****************FAILED
+* 	Kijken voor interrupts		
+		#TRY: interupts expliciet uit gezet met een cli(); werkt ook niet*********************************************FAILED
+*	Server class conflict met andere arduino library?
+		#TRY: arduino direct geprogammerd (puur c, en zonder arduino ide) met avr-gcc & avrdude + isp ****************FAILED
+* 	zoveel mogelijk variabelen en functies bij de Server class weghalen
+		#TRY: buffer heel klein maken ********************************************************************************FAILED
+		#TRY: alle functies behalve de constructor uit de server class halen******************************************FAILED
+		#TRY: Constanten weghalen*************************************************************************************FAILED
+		#TRY: Constructor leeg halen (weg commetarizeren)*************************************************************FAILED
+		#TRY: Alle andere classes ook maar leeg halen :( *************************************************************FAILED
+		#TRY: naam server class weizigen *****************************************************************************FAILED
