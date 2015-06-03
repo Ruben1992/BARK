@@ -154,8 +154,8 @@ public:
 
     int         start();               // Initialize connection
     int         listen();              // Start listning on a the specified port
-    int        receivingData(uint8_t buffer[], uint16_t maxSize);       // reads the RX buffer on the wiznet
-    int         sendData(uint8_t data[], uint16_t length);            // send data to the TX buffer
+    int         receivingData(uint8_t buffer[], uint16_t maxSize);       // reads the RX buffer on the wiznet
+    int         sendData(uint8_t data[]/*, uint16_t length*/);            // send data to the TX buffer
 
     int         checkEstablished();    // checks if the connection is established
     uint16_t    receivedData();        // checks how many byte of data we received and returns that value
@@ -238,5 +238,4 @@ private:
 };
 
 #endif
-
 

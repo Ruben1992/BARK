@@ -4,6 +4,7 @@
 #include <string.h>
 #include "ethernet.hpp"
 #include "spi.hpp"
+
 #ifndef F_CPU
     #define F_CPU 16000000UL // 1 MHz
 #endif
@@ -59,11 +60,13 @@ uint8_t wiznet::read(uint8_t regGroup, uint8_t reg){ /// return -1 on error
     return(spi.trans(0));         // you can also find the reply in SPDR register
 }
 void wiznet::readRx(uint8_t dest[], /*uint8_t sNr,*/ uint16_t startAdress, uint16_t length){
-    for (uint16_t i = 0; i < length; i++){
+    uint16_t i;
+    for (i = 0; i < length; i++){
         dest[i] = read(((startAdress+i)>>8), startAdress+i);
     }
-    dest[i+1] = 0; // terminator
+    dest[i] = 0; // terminator
 }
+
 void wiznet::writeTx(uint8_t source[], /*uint8_t sNr, */uint16_t startAdress, uint16_t length){
     for (uint16_t i = 0; i < length; i++){
         write(((startAdress+i)>>8), startAdress+i, source[i]);
@@ -180,6 +183,7 @@ int Server::receivingData(uint8_t buffer[], uint16_t maxSize){                  
     //get_size = Sn_RX_RSR; // get the received size
     uint16_t get_size = read2byte(sNr, wiz.Sn_RX_RSR0, wiz.Sn_RX_RSR1);
     if (get_size > maxSize){
+            // uitbreiden, pointer updaten?
         return 0;   // error te groot
     }
     //get_offset = Sn_RX_RD & gSn_RX_MASK;  // calculate the offset address
@@ -231,9 +235,9 @@ int Server::receivingData(uint8_t buffer[], uint16_t maxSize){                  
     return 1;
 }
 
-
-
-int Server::sendData(uint8_t data[], uint16_t length){                            // verstuur data
+int Server::sendData(uint8_t data[]/*,uint16_t length*/){  
+    uint16_t length;
+    for (length = 0; data[length]; ++length);
 
 
 //    uint16_t gSn_RX_BASE = 0x6000 + (gSn_RX_MASK + 1) * number;      /// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -278,7 +282,7 @@ int Server::sendData(uint8_t data[], uint16_t length){                          
     }
     /* Increase Sn_TX_WR as length of send_size */
     uint16_t temp = read2byte(sNr, wiz.Sn_TX_WR0, wiz.Sn_TX_WR1);
-    //write2byte(sNr, wiz.Sn_TX_RD0, wiz.Sn_TX_RD1 ,temp); // overbodig
+    write2byte(sNr, wiz.Sn_TX_RD0, wiz.Sn_TX_RD1 ,temp); // overbodig
     write2byte(sNr, wiz.Sn_TX_WR0, wiz.Sn_TX_WR1 ,temp+length);
 
     /* set SEND command */
