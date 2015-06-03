@@ -1,0 +1,9 @@
+#!/bin/bash
+avr-gcc -g -Os -mmcu=atmega328p -c BARK.cpp ethernet.cpp spi.cpp 
+avr-gcc -g -mmcu=atmega328p -o flash.elf BARK.o ethernet.o spi.o
+avr-objcopy -j .text -j .data -O ihex flash.elf flash.hex
+#/// copy old data from avr to a old file, just in case its something importand
+sudo avrdude -c avrisp -p atmega328p -P /dev/ttyUSB$1 -U flash:r:mystery.hex:r -F
+#// program
+sudo avrdude -c avrisp -p atmega328p -P /dev/ttyUSB$1 -U flash:w:flash.hex -F
+
