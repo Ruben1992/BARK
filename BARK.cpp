@@ -252,7 +252,7 @@ void loop(){
 
         
 
-        if(millis - digitPotSpeed >= 10){
+        if(millis - digitPotSpeed >= 50){
             static uint8_t actualPosPots[daisyPots];
             digitPotSpeed = millis;
             for (int i = 0; i < daisyPots; ++i) /// smoothly fades to desired value
