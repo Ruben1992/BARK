@@ -3,7 +3,9 @@
 #include "USART.hpp"
 
 #define F_CPU 16000000UL
-#define BAUD 9600
+#define BAUD 19200
+
+//#define USE_2X 1
 
 #include <util/setbaud.h>
 
@@ -45,7 +47,65 @@ void USART::send(uint8_t data[]){
 	while(*data != 0x00){
 		send(*data);
 		data++;
-		}
+	}
 }
 
+void USART::send(char data[]){
+ 
+    while(*data != 0x00){
+        send((uint8_t) *data);
+        data++;
+    }
+}
+
+
+
+void USART::write( uint8_t arr){
+    uint8_t scratch[3];
+    scratch[0] = 0;
+    scratch[1] = 0;
+    scratch[2] = 0;
+
+
+    int j, k;
+    uint8_t nscratch = 3;
+    int smin = nscratch-2;    /* speed optimization */
+ 
+
+    for (j=0; j < 16; ++j) {
+        /* This bit will be shifted in on the right. */
+        int shifted_in = (arr & (1 << (15-j)))? 1: 0;
+
+        /* Add 3 everywhere that scratch[k] >= 5. */
+        for (k=smin; k < nscratch; ++k)
+          	scratch[k] += (scratch[k] >= 5)? 3: 0;
+
+        /* Shift scratch to the left by one position. */
+        if (scratch[smin] >= 8)
+          	smin -= 1;
+        for (k=smin; k < nscratch-1; ++k) {
+            scratch[k] <<= 1;
+            scratch[k] &= 0xF;
+            scratch[k] |= (scratch[k+1] >= 8);
+        }
+
+        /* Shift in the new bit from arr. */
+        scratch[nscratch-1] <<= 1;
+        scratch[nscratch-1] &= 0xF;
+        scratch[nscratch-1] |= shifted_in;
+    }
+
+ 
+	
+
+    /* Convert the scratch space from BCD digits to ASCII. */
+    for (k=0; k < nscratch; ++k){
+    	send(scratch[k] += '0');	
+    }
+
+
+
+
+
+}
 USART usart;

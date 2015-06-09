@@ -29,6 +29,8 @@ class wiznet{
     void writeTx(uint8_t source[], /*uint8_t sNr,*/ uint16_t startAdress, uint16_t length);
     void readRx(uint8_t dest[], /*uint8_t sNr,*/ uint16_t startAdress, uint16_t length);
     uint8_t setIpData();
+   
+
 
 
 ///-- First byte to send (selecting read, or write mode)
@@ -140,7 +142,12 @@ extern wiznet wiz;
 
 class Server{
 public:
-    //uint8_t buffer[];
+    enum State{ERROR = 0, SOCK_CLOSED, SOCK_INIT, SOCK_LISTEN, SOCK_ESTABLISHED, SOCK_CLOSE_WAIT, SOCK_IPRAW, SOCK_UDP};
+
+    State state;
+    State lastState;
+    uint32_t lastUpdate;
+    uint16_t maxTime;
 
     Server(uint8_t x);
 
@@ -159,15 +166,20 @@ public:
 
     int         checkEstablished();    // checks if the connection is established
     uint16_t    receivedData();        // checks how many byte of data we received and returns that value
-    void        gotFin();              // checks if we received a fin (finshed) bit
-    void        closed();              // checks if the connections is closed from the other side and if it is, it will call the disconnect function
+    int         gotFin();              // checks if we received a fin (finshed) bit
+    int         closed();              // checks if the connections is closed from the other side and if it is, it will call the disconnect function
     int         timeout();             // checks if the connection timedout
-    
+    int         connectionDead();      // checks the 3 above functions, returns 0 if connection is dead, otherwise 1
+
+
     void        close();               // close the connection (dirty)
     void        disconnect();          // close the connection (clean)
     uint8_t     getStatus();           // reads the status register of the socket
+    uint8_t     getInterrupt();         // get inerrupt register status
+    uint8_t     getSockInterrupt();
 
-
+    void        watchdogSet(uint16_t x);
+    int         watchdog();
 
 private:
 
@@ -227,7 +239,6 @@ private:
     }SR;
 
     uint8_t port[2];
-    uint8_t state;
 
     uint8_t sNr, number;                     // socket nummer
     uint8_t retrycounter;

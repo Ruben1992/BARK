@@ -24,13 +24,13 @@ Todo
 
 
 /* nog te programeren */
-* 	eigen uart (serial print) (optioneel)
+* 	eigen uart (serial print) (optioneel) **************************************************************************DONE
 * 	
 *	digitale potmeter library
 *	flowserial implenteren
 
 *	Rotary encoder ?? laagste prioriteit
-* 	millis implentatie
+* 	millis implentatie *********************************************************************************************DONE
 
 
 /* opruimen */
