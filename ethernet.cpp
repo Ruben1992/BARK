@@ -6,6 +6,8 @@
 #include "spi.hpp"
 #include "millis.hpp"
 #include "USART.hpp"
+#include <avr/io.h>
+
 
 #ifndef F_CPU
     #define F_CPU 16000000UL // 1 MHz
@@ -16,6 +18,22 @@
 #define gSn_RX_MASK 0x07FF
 #define gSn_TX_MASK 0x07FF
 
+#ifdef __AVR_ATmega328P__
+    #define DDR_SPI DDRB 
+    #define DD_MOSI 5  
+    #define DD_SCK 3   
+    #define DD_SS 2     
+    #define PORT_SPI0 PORTB
+#endif
+#ifdef __AVR_ATmega1280__
+
+    #define DDR_SPI DDRB 
+    #define DD_MOSI 2  
+    #define DD_SCK 1   
+    #define DD_SS 4     
+    #define extraSS 0
+    #define PORT_SPI0 PORTB
+#endif
 /* *************************************************************************************************************************** */
 //                                                CLASS NETWORK        
 /* *************************************************************************************************************************** */
@@ -53,24 +71,30 @@ void Network::setSNM(uint8_t a, uint8_t b, uint8_t c, uint8_t d){
 /* *************************************************************************************************************************** */
 
 
-//wiznet::write
+wiznet::wiznet(){
+    DDR_SPI |= (1<<DD_SS); // slave select
+}
+
 uint8_t wiznet::write(uint8_t regGroup, uint8_t reg, uint8_t data){ /// return -1 on error
     uint8_t n = 0;
+    PORT_SPI0 &= ~(1<<DD_SS);
     n =  spi.trans(M_write);      // n = 0, when ok
     n += spi.trans(regGroup);     // n + 1 = 1, when ok
     n += spi.trans(reg);          // n + 2 = 3, when ok
     n += spi.trans(data);         // n + 3 = 6, when ok
-    #ifdef debug
-    Serial.print(n);
-    #endif
+    PORT_SPI0 |= (1<<DD_SS);
     return n; // should return 6 when all ok
 }
 
 uint8_t wiznet::read(uint8_t regGroup, uint8_t reg){ /// return -1 on error
+    uint8_t out = 0;
+    PORT_SPI0 &= ~(1<<DD_SS);
     spi.trans(M_read);
     spi.trans(regGroup);
     spi.trans(reg);
-    return(spi.trans(0));         // you can also find the reply in SPDR register
+    out = spi.trans(0x14);
+    PORT_SPI0 |= (1<<DD_SS);
+    return out;
 }
 void wiznet::readRx(uint8_t dest[], /*uint8_t sNr,*/ uint16_t startAdress, uint16_t length){
     uint16_t i;

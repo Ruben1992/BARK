@@ -1,5 +1,10 @@
+#include <stdint.h>
+#include <avr/io.h>
+
 #ifndef __SPI_hpp_
-    #define __SPI_hpp_
+	#define __SPI_hpp_
+
+    
 
     class SPI{
     public:

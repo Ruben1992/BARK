@@ -24,6 +24,7 @@ extern Network ip;
 
 class wiznet{
     public:
+    wiznet();
     uint8_t read(uint8_t regGroup, uint8_t reg); /// return -1 on error
     uint8_t write(uint8_t regGroup, uint8_t reg, uint8_t data); /// return -1 on error
     void writeTx(uint8_t source[], /*uint8_t sNr,*/ uint16_t startAdress, uint16_t length);
