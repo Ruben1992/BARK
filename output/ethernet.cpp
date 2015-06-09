@@ -4,6 +4,8 @@
 #include <string.h>
 #include "ethernet.hpp"
 #include "spi.hpp"
+#include "millis.hpp"
+#include "USART.hpp"
 
 #ifndef F_CPU
     #define F_CPU 16000000UL // 1 MHz
@@ -13,6 +15,11 @@
 /// ONLY WORKS IF WE USE 2K PER SOCKET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #define gSn_RX_MASK 0x07FF
 #define gSn_TX_MASK 0x07FF
+
+/* *************************************************************************************************************************** */
+//                                                CLASS NETWORK        
+/* *************************************************************************************************************************** */
+/* *************************************************************************************************************************** */
 
 
 Network::Network(){
@@ -39,6 +46,12 @@ void Network::setGate(uint8_t a, uint8_t b, uint8_t c, uint8_t d){
 void Network::setSNM(uint8_t a, uint8_t b, uint8_t c, uint8_t d){
     SNM[0] = a; SNM[1] = b; SNM[2] = c; SNM[3] = d;
 }
+
+/* *************************************************************************************************************************** */
+//                                                CLASS WIZNET        
+/* *************************************************************************************************************************** */
+/* *************************************************************************************************************************** */
+
 
 //wiznet::write
 uint8_t wiznet::write(uint8_t regGroup, uint8_t reg, uint8_t data){ /// return -1 on error
@@ -78,6 +91,8 @@ void wiznet::writeTx(uint8_t source[], /*uint8_t sNr, */uint16_t startAdress, ui
 uint8_t wiznet::setIpData(){
     int i;
     write(wiz.R_com, wiz.C_Mode, 0x80);   // set mode
+    write(wiz.R_com, wiz.C_IRM, 0xFF);   // Enable interrupt (mask)
+
 #ifdef debug
     Serial.println("\tWiznetmode = 0x80");
 #endif
@@ -117,8 +132,16 @@ uint8_t wiznet::setIpData(){
 #endif
 }
 
+/* *************************************************************************************************************************** */
+//                                                CLASS SERVER        
+/* *************************************************************************************************************************** */
+/* *************************************************************************************************************************** */
 
 Server::Server(uint8_t x){
+    state = ERROR;
+    lastState = ERROR;
+    lastUpdate = millis;
+    maxTime = 30000; // default timeout = 5s
     if (x >= 0 && x <= 3){
         sNr    = x +4;
         number = x;
@@ -183,7 +206,13 @@ int Server::receivingData(uint8_t buffer[], uint16_t maxSize){                  
     //get_size = Sn_RX_RSR; // get the received size
     uint16_t get_size = read2byte(sNr, wiz.Sn_RX_RSR0, wiz.Sn_RX_RSR1);
     if (get_size > maxSize){
-            // uitbreiden, pointer updaten?
+        // bericht te groot, discard
+        uint16_t temp = read2byte(sNr, wiz.Sn_RX_RD0, wiz.Sn_RX_RD1) + get_size;
+        write2byte(sNr, wiz.Sn_RX_RD0, wiz.Sn_RX_RD1, temp);
+
+        /* set RECV command */
+        wiz.write(sNr, wiz.Sn_CR, CR.RECV);
+        while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de instructie is uigevoer
         return 0;   // error te groot
     }
     //get_offset = Sn_RX_RD & gSn_RX_MASK;  // calculate the offset address
@@ -292,15 +321,19 @@ int Server::sendData(uint8_t data[]/*,uint16_t length*/){
 }
 
 
-void Server::gotFin(){                              // 0x18 - fin: einde verbinding ontvangen?
+int Server::gotFin(){                              // 0x18 - fin: einde verbinding ontvangen?
     if (wiz.read(sNr, wiz.Sn_IR) & IR.DISCON){          // if disconnect request is fount (FIN), then close the connection
         disconnect();
+        return 1;
     }
+    return 0;
 }
-void Server::closed(){                              // de verbinding is (netjes,toch?)verbroken vanaf de anderekant
+int Server::closed(){                              // de verbinding is (netjes,toch?)verbroken vanaf de anderekant
     if (wiz.read(sNr, wiz.Sn_IR) & IR.DISCON){          // if disconnect request is fount (FIN), then close the connection
         disconnect();
+        return 1;
     }
+    return 0;
 }
 int Server::timeout(){                             // check voor timeout
     if (wiz.read(sNr, wiz.Sn_IR) & IR.TIMEOUT){
@@ -309,6 +342,15 @@ int Server::timeout(){                             // check voor timeout
     }
     return 0;
 }
+
+int Server::connectionDead(){
+    int temp;
+    temp = timeout();
+    temp += (closed()<<1);
+    temp += (gotFin()<<2);
+    return temp;
+}
+
 void Server::close(){                               // sluit de vieze methode
     wiz.write(sNr, wiz.Sn_CR, CR.CLOSE);
 }
@@ -316,8 +358,16 @@ void Server::disconnect(){                          // sluit de vebinding netjes
     wiz.write(sNr, wiz.Sn_CR, CR.DISCON);
 }
 uint8_t Server::getStatus(){                           // get status van de socket
-    return wiz.read(sNr, wiz.Sn_SR);
+    return wiz.read(wiz.R_com, wiz.Sn_SR);
 }
+uint8_t Server::getInterrupt(){                           // get global interrups
+    return wiz.read(sNr, wiz.C_IR);
+}
+uint8_t Server::getSockInterrupt(){                           // get socket Interupts
+    return wiz.read(sNr, wiz.Sn_IR);
+}
+
+
 
 uint16_t Server::read2byte(uint8_t group, uint8_t high, uint8_t low){ // lees 2 bytes uit en plaats ze in een word
     uint16_t _high = (uint16_t) wiz.read(group, high);
@@ -332,8 +382,32 @@ void Server::write2byte(uint8_t group, uint8_t regHigh, uint8_t regLow, uint16_t
     wiz.write(group, regLow, dataLow);
 }
 
+void Server::watchdogSet(uint16_t x){
+    maxTime = x;
+}
+
+int Server::watchdog(){
+    if (state == SOCK_CLOSED | state == SOCK_INIT){
+        lastUpdate = millis;
+    }
+    if (state != lastState){
+        lastState = state;
+        lastUpdate = millis;
+    }
+    else{
+        if (millis - lastUpdate >= (uint32_t)maxTime){
+            usart.send("WATCHDOG TIMER TIMEDOUT!!\n\rRestating state machine\n\rBARK!");
+            lastUpdate = millis;
+            disconnect(); // close connection (CLEAN)
+            close(); // close connection (DIRTY)
+            state = SOCK_CLOSED;
+        }
+    }
+}
+
 
 wiznet wiz;
 Network ip;
 
 #endif
+
