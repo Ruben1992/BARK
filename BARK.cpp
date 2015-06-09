@@ -23,6 +23,7 @@
 #define buffSize 100
 #define IPADRESS 10,0,0,222
 #define PORTNO 7010
+#define daisyPots 4 /*amound of daisy chained pots*/
 /* *************************************************************************************************************************** */
 //                                                more includes        
 /* *************************************************************************************************************************** */
@@ -35,6 +36,7 @@
 #include <string.h> // Zie opmerking 1.
 #include "USART.hpp"
 #include "millis.hpp"
+#include "AD5290.hpp"
 
 using namespace std;
 
@@ -73,6 +75,7 @@ int main(){
 
 void setup(){
     DDRD |= (1<<2);
+    ad5290.init();
     spi.init();
     ip.setIp(IPADRESS);
     wiz.setIpData();
@@ -115,9 +118,12 @@ uint8_t name8[] = {"bestaat niet"};
 
 void loop(){
     millis_init();
+    uint8_t data[daisyPots]; // voor de digipots
+    for(unsigned i = 0; i < daisyPots; data[i++] = 0); // alles op 0 zetten  
     uint32_t interval = millis;
     uint32_t speedLimit = millis;
     uint32_t aliveLedTim = millis;
+    uint32_t digitPotSpeed = millis;
 
 //     enum State{ERROR = 0, SOCK_CLOSED, SOCK_INIT, SOCK_LISTEN, SOCK_ESTABLISHED, SOCK_CLOSE_WAIT, SOCK_IPRAW, SOCK_UDP};
     uint8_t debugVal = 0;
@@ -149,8 +155,10 @@ void loop(){
                         sock0.state = Server::SOCK_LISTEN;
                     }
                 }
-                else 
+                else{
+                    usart.send("FAILED!\n\r");
                     sock0.state = Server::SOCK_CLOSED;
+                }
             break;
             case Server::SOCK_LISTEN:   // wait for incoming connection       
                 // if interrupt from wiznet
@@ -241,9 +249,21 @@ void loop(){
             usart.send(sockEnd);
         }
 
+
+        
+
+        if(millis - digitPotSpeed >= 10){
+            digitPotSpeed = millis;
+            static bool richting = false;
+            for (int i = 0; i < daisyPots; data[i++]++);
+            ad5290.write(data, (uint8_t)daisyPots);
+        }
+
         if(millis - aliveLedTim >= 500){
             aliveLedTim = millis;
+
             PORTD ^= (1<<2);
+
         }
        sock0.watchdog();
 
