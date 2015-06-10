@@ -252,11 +252,17 @@ void loop(){
 
         
 
-        if(millis - digitPotSpeed >= 10){
+        if(millis - digitPotSpeed >= 50){
+            static uint8_t actualPosPots[daisyPots];
             digitPotSpeed = millis;
-            static bool richting = false;
-            for (int i = 0; i < daisyPots; data[i++]++);
-            ad5290.write(data, (uint8_t)daisyPots);
+            for (int i = 0; i < daisyPots; ++i) /// smoothly fades to desired value
+            {
+                if (actualPosPots[i] < digipots[i])
+                    actualPosPots++;
+                if (actualPosPots[i] > digipots[i])
+                    actualPosPots--;
+            }
+            ad5290.write(data, (uint8_t)daisyPots);    
         }
 
         if(millis - aliveLedTim >= 500){

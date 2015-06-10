@@ -4,8 +4,6 @@
 #ifndef __SPI_hpp_
 	#define __SPI_hpp_
 
-    
-
     class SPI{
     public:
         void init();
