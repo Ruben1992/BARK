@@ -4,9 +4,9 @@
 
 FlowSerial::FlowSerial():ID(0){}
 
-char FlowSerial::update(){
+uint8_t FlowSerial::update(){
     while(/*Serial.available()*/0 != 0){
-        unsigned char byteIn = 5;/*Serial.read()*/;
+        unsigned uint8_t byteIn = 5;/*Serial.read()*/;
         switch(process){
             case start:
                 //Check if the start byte equals 0xAA. Else stay in idle
@@ -123,8 +123,8 @@ char FlowSerial::update(){
                                 addToOutbox(serialReg[i + argumentBuffer[0]]);
                                 checksumOut += serialReg[i + argumentBuffer[0]];
                             }
-                            addToOutbox(char(checksumOut));
-                            addToOutbox(char(checksumOut >> 8));
+                            addToOutbox(uint8_t(checksumOut));
+                            addToOutbox(uint8_t(checksumOut >> 8));
                             //Send the data
                             outboxSend();
                             //Reset the state machine
@@ -146,8 +146,8 @@ char FlowSerial::update(){
                                 addToOutbox(serialReg[i + argumentBuffer[0]]);
                                 checksumOut += serialReg[i + argumentBuffer[0]];
                             }
-                            addToOutbox(char(checksumOut));
-                            addToOutbox(char(checksumOut >> 8));
+                            addToOutbox(uint8_t(checksumOut));
+                            addToOutbox(uint8_t(checksumOut >> 8));
                             //Send the data
                             outboxSend();
                             //Reset the state machine
@@ -191,12 +191,12 @@ char FlowSerial::update(){
     */
     return 1;
 }
-char FlowSerial::read(){
-    char charOut = inboxBuffer[inboxBufferAt - inboxAvailable];
+uint8_t FlowSerial::read(){
+    uint8_t charOut = inboxBuffer[inboxBufferAt - inboxAvailable];
     inboxAvailable--;
     return charOut;
 }
-char FlowSerial::available(){
+uint8_t FlowSerial::available(){
     return inboxAvailable;
 }
 void FlowSerial::transmissionError(bool resend){
@@ -224,13 +224,13 @@ void FlowSerial::sendDebugInfo(String text, int textLength){
         addToOutbox(text[i]);
         serialSum += text[i];
     }
-    addToOutbox(char(serialSum));
-    addToOutbox(char(serialSum >> 8));
+    addToOutbox(uint8_t(serialSum));
+    addToOutbox(uint8_t(serialSum >> 8));
     //Send the data
     outboxSend();
 }
 */
-void FlowSerial::write(char address, char out[], int quantity){
+void FlowSerial::write(uint8_t address, uint8_t out[], int quantity){
     addToOutbox(0xAA);
     addToOutbox(0x02);
     addToOutbox(address);
@@ -240,24 +240,24 @@ void FlowSerial::write(char address, char out[], int quantity){
         addToOutbox(out[i]);
         serialSum += out[i];
     }
-    addToOutbox(char(serialSum));
-    addToOutbox(char(serialSum >> 8));
+    addToOutbox(uint8_t(serialSum));
+    addToOutbox(uint8_t(serialSum >> 8));
     //Send the data
     outboxSend();
 }
-void FlowSerial::write(char address, char out){
+void FlowSerial::write(uint8_t address, uint8_t out){
     addToOutbox(0xAA);
     addToOutbox(0x02);
     addToOutbox(address);
     addToOutbox(0x01);
     int serialSum = 0xAD + address + out;
     addToOutbox(out);
-    addToOutbox(char(serialSum));
-    addToOutbox(char(serialSum >> 8));
+    addToOutbox(uint8_t(serialSum));
+    addToOutbox(uint8_t(serialSum >> 8));
     //Send the data
     outboxSend();
 }
-void FlowSerial::addToOutbox(char out){
+void FlowSerial::addToOutbox(uint8_t out){
     outboxBuffer[outboxBufferAt++];
     outboxBufferAt %= outboxBufferSize;
     outboxPending++;
