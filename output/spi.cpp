@@ -42,7 +42,7 @@
         /* Enable SPI, Master, set clock rate fck/16 */
         SPCR = (1<<SPE)|(1<<MSTR);
         /* Double speed mode, want sneller is beter */
-        SPSR |= (1<<SPI2X);  /// ff uit gezet, voor de logic analyzer
+       // SPSR |= (1<<SPI2X);  /// ff uit gezet, voor de logic analyzer
     }
 
     uint8_t SPI::trans(uint8_t cData){

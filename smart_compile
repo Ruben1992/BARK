@@ -2,11 +2,11 @@
 #
 #
 
-cp BARK.cpp ethernet.cpp ethernet.hpp spi.cpp spi.hpp USART.cpp USART.hpp millis.cpp millis.hpp AD5290.cpp AD5290.hpp output/
-
+cp BARK.cpp ethernet.cpp ethernet.hpp spi.cpp spi.hpp USART.cpp USART.hpp millis.cpp millis.hpp AD5290.cpp AD5290.hpp FlowSerial.cpp FlowSerial.h output/
+#-std=c++11 
 cd output
-if avr-gcc -g -Os -std=c++11 -mmcu=atmega$1 -c BARK.cpp ethernet.cpp spi.cpp USART.cpp millis.cpp AD5290.cpp; then 
-	if avr-gcc -g -std=c++11 -mmcu=atmega$1 -o flash.elf BARK.o ethernet.o spi.o USART.o millis.o AD5290.o; then
+if avr-gcc -g -std=c++11 -Os -mmcu=atmega$1 -c BARK.cpp ethernet.cpp spi.cpp USART.cpp millis.cpp AD5290.cpp FlowSerial.cpp; then 
+	if avr-gcc -g -std=c++11 -mmcu=atmega$1 -o flash.elf BARK.o ethernet.o spi.o USART.o millis.o AD5290.o FlowSerial.o ; then
 		if avr-objcopy -j .text -j .data -O ihex flash.elf flash.hex; then
 			#/// copy old data from avr to a old file, just in case its something importand
 		#	sudo avrdude -c stk500v2 -p ATmega$1 -P /dev/ttyUSB$2 -U flash:r:.OLDmystery.hex:r

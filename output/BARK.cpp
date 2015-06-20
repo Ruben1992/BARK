@@ -1,6 +1,3 @@
-#include <avr/io.h>
-#include <avr/interrupt.h>
-
 /*
  */
 /* *************************************************************************************************************************** */
@@ -21,7 +18,9 @@
     #define F_CPU 16000000UL // 16 MHz
 #endif
 #define buffSize 100
-#define IPADRESS 10,0,0,222
+//#define IPADRESS 10,0,0,222
+#define IPADRESS 192,168,2,222
+
 #define PORTNO 7010
 #define daisyPots 4 /*amound of daisy chained pots*/
 /* *************************************************************************************************************************** */
@@ -37,6 +36,7 @@
 #include "USART.hpp"
 #include "millis.hpp"
 #include "AD5290.hpp"
+#include "FlowSerial.h"
 
 using namespace std;
 
@@ -134,19 +134,20 @@ void loop(){
 
     Server sock0((uint8_t)1); // open socket, nummer 0
 
-    uint8_t buff[buffSize];
+    uint8_t inBuff[buffSize];
     uint16_t watchdog = 0;
 
     usart.send(start);
     uint16_t counter = 0;
 
     while(1){
-        if (millis - speedLimit >= 1){  // assures there is a minimum of 1 ms delay;
+        if (millis - speedLimit >= 0){  // assures there is a minimum of 1 ms delay;
             speedLimit = millis;
             
             switch(sock0.state){
             case Server::SOCK_CLOSED:  // connection closed, lets start the connection, eh?
                 sock0.state = Server::SOCK_INIT;
+                /// clear all interupt registers
             break;
             case Server::SOCK_INIT:
                 sock0.setPort((uint16_t)7010);
@@ -162,20 +163,60 @@ void loop(){
             break;
             case Server::SOCK_LISTEN:   // wait for incoming connection       
                 // if interrupt from wiznet
+                // 
+                if (sock0.getSockInterrupt() == 007){
+                    Server::ERROR;
+                }
+                
+
                 if(sock0.checkEstablished()){
                     usart.send(clCon);
                     sock0.state = Server::SOCK_ESTABLISHED;
                 }
+                /// if interupt = 007 then restart naar sock_closed
             break;
             case Server::SOCK_ESTABLISHED:
                 static uint16_t last_received;
                 uint16_t nowReceived;
                 nowReceived = sock0.receivedData();
-                if (last_received != nowReceived){
+                if (last_received != nowReceived){ /// overbodig
                     last_received = nowReceived;
                 }
                 else{
                     if (last_received != 0){  /// hehe, eindelijk alles ontvangen, versturen maar
+                        last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
+
+                        sock0.receivingData(inBuff, buffSize);
+                        for (int i = 0; i < nowReceived; ++i)
+                        {
+                            flowSerial.update(inBuff[i]);
+                        }
+
+                        uint8_t outBuff[10+1];
+                        uint8_t i;
+                        for (i = 0;i < 10; ++i)
+                        {
+                            if (flowSerial.outboxAvailable() == 0){
+                                outBuff[i] = 0;
+                                break;
+                            }
+                            outBuff[i] = flowSerial.outboxNextOut();
+                        }
+
+                        usart.write(flowSerial.serialReg[1]);
+                        // sock0.sendData(outBuff);
+                        // usart.send("[byte 1 = ");
+                        // usart.write(flowSerial.serialReg[1]);
+                        // usart.send(" byte 2 = ");
+                        // usart.write(flowSerial.serialReg[2]);
+                        // usart.send(" byte 3 = ");
+                        // usart.write(flowSerial.serialReg[3]);
+                        // usart.send(" byte 4= ");
+                        // usart.write(flowSerial.serialReg[4]);
+                        // usart.send("]\n\r");
+
+
+                        /*
                         usart.send(Rsize);
                         usart.write((uint8_t)nowReceived);
                         usart.send(enter);
@@ -197,6 +238,7 @@ void loop(){
                         }
                         else
                             last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
+                        */
                     }
                 }
 
@@ -214,6 +256,8 @@ void loop(){
             case Server::SOCK_IPRAW:
             case Server::SOCK_UDP:
             case Server::ERROR:
+                sock0.disconnect(); // close connection (CLEAN)
+                sock0.close(); // close connection (DIRTY)
                 sock0.state = Server::SOCK_CLOSED;
             default:
                 sock0.state = Server::SOCK_CLOSED;
@@ -223,12 +267,14 @@ void loop(){
 
 
 
-        if ((sock0.lastState != sock0.state) | (millis - interval >= 5000)){
+        if ((sock0.lastState != sock0.state) | (millis - interval >= 15000)){
             sock0.lastState = sock0.state;
             interval = millis;
             usart.send(sockState);
             usart.write(sock0.state);
             usart.send((uint8_t)' ');
+            PORTD |= (1<<5);
+
             switch(sock0.state){
                 case 0 :    usart.send(name0);  break;
                 case 1 :    usart.send(name1);  break;
@@ -241,12 +287,15 @@ void loop(){
                 default:    usart.send(name8);
             }
             usart.send("\tSR ");
+            PORTD |= (1<<6);
             usart.write(sock0.getStatus());
+            PORTD &= ~(1<<6);
             usart.send(" Glob ");
             usart.write(sock0.getInterrupt());
             usart.send(" sock ");
             usart.write(sock0.getSockInterrupt());
             usart.send(sockEnd);
+            PORTD &= ~(1<<5);
         }
 
 
@@ -257,10 +306,10 @@ void loop(){
             digitPotSpeed = millis;
             for (int i = 0; i < daisyPots; ++i) /// smoothly fades to desired value
             {
-                if (actualPosPots[i] < digipots[i])
-                    actualPosPots++;
-                if (actualPosPots[i] > digipots[i])
-                    actualPosPots--;
+                if (actualPosPots[i] < flowSerial.serialReg[i])
+                    actualPosPots[i]++;
+                if (actualPosPots[i] > flowSerial.serialReg[i])
+                    actualPosPots[i]--;
             }
             ad5290.write(data, (uint8_t)daisyPots);    
         }

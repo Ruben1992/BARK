@@ -1,4 +1,4 @@
-
+#include <stdint.h>
 
 #ifndef __ethernet_hpp_
 #define __ethernet_hpp_
