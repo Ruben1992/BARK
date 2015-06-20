@@ -17,10 +17,11 @@ Todo
 * 	onodige code spi weghalen***************************************************************************************DONE
 
 
-*	while 1 loops in ethernet.cpp weghalen
+*	while 1 loops in ethernet.cpp weghalen  ************************************************************************DONE
 
-*	state listen ofzo, resetten als disconnect
+*	state listen ofzo, resetten als disconnect *********************************************************************DONE
 
+*	interrupt gebaseerde serial print (optioneel)
 whiles er uit halen (zodat de code niet vast kan lopen)
 
 
