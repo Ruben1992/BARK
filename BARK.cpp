@@ -18,8 +18,8 @@
     #define F_CPU 16000000UL // 16 MHz
 #endif
 #define buffSize 100
-//#define IPADRESS 10,0,0,222
-#define IPADRESS 192,168,2,222
+#define IPADRESS 10,0,0,222
+//#define IPADRESS 192,168,2,222
 
 #define PORTNO 7010
 #define daisyPots 4 /*amound of daisy chained pots*/
@@ -75,6 +75,8 @@ int main(){
 
 void setup(){
     DDRD |= (1<<2);
+    DDRD |= (1<<6);
+
     ad5290.init();
     spi.init();
     ip.setIp(IPADRESS);
@@ -184,14 +186,16 @@ void loop(){
                 }
                 else{
                     if (last_received != 0){  /// hehe, eindelijk alles ontvangen, versturen maar
-                        last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
-
+                        
+                        
                         sock0.receivingData(inBuff, buffSize);
                         for (int i = 0; i < nowReceived; ++i)
                         {
+                            PORTD |= (1<<6);
                             flowSerial.update(inBuff[i]);
+                            PORTD &= ~(1<<6);
                         }
-
+                        
                         uint8_t outBuff[10+1];
                         uint8_t i;
                         for (i = 0;i < 10; ++i)
@@ -202,8 +206,15 @@ void loop(){
                             }
                             outBuff[i] = flowSerial.outboxNextOut();
                         }
-
+                        usart.write(flowSerial.serialReg[0]);
+                        usart.send(" ");
                         usart.write(flowSerial.serialReg[1]);
+                        usart.send(" ");
+                        usart.write(flowSerial.serialReg[2]);
+                        usart.send(" ");
+                        usart.write(flowSerial.serialReg[3]);
+                        usart.send("\n\r");
+
                         // sock0.sendData(outBuff);
                         // usart.send("[byte 1 = ");
                         // usart.write(flowSerial.serialReg[1]);
@@ -239,6 +250,8 @@ void loop(){
                         else
                             last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
                         */
+                        last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
+
                     }
                 }
 
@@ -287,9 +300,8 @@ void loop(){
                 default:    usart.send(name8);
             }
             usart.send("\tSR ");
-            PORTD |= (1<<6);
+
             usart.write(sock0.getStatus());
-            PORTD &= ~(1<<6);
             usart.send(" Glob ");
             usart.write(sock0.getInterrupt());
             usart.send(" sock ");
