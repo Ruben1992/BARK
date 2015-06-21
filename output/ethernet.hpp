@@ -177,8 +177,12 @@ public:
     void        disconnect();          // close the connection (clean)
     uint8_t     getStatus();           // reads the status register of the socket
     uint8_t     getInterrupt();        // get inerrupt register status
-    uint8_t     getSockInterrupt();
+    uint8_t     SockInterrupt();                           // get socket Interupts
+    uint8_t     SockInterrupt(int8_t x);                   // get socket Interupts, and clear the selected bits
+
+//    uint8_t     getSockInterrupt();
     bool        commandExecuted();     // wait until the command is executed, if it takes to long, it  will return 0
+
 
     void        watchdogSet(uint16_t x);
     int         watchdog();

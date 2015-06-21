@@ -407,10 +407,14 @@ uint8_t Server::getStatus(){                           // get status van de sock
 uint8_t Server::getInterrupt(){                           // get global interrups
     return wiz.read(sNr, wiz.C_IR);
 }
-uint8_t Server::getSockInterrupt(){                           // get socket Interupts
+uint8_t Server::SockInterrupt(int8_t x){                           // get socket Interupts
+    uint8_t temp = wiz.read(sNr, wiz.Sn_IR);
+    wiz.write(sNr, wiz.Sn_IR, x);
+    return temp;
+}
+uint8_t Server::SockInterrupt(){                           // get socket Interupts
     return wiz.read(sNr, wiz.Sn_IR);
 }
-
 
 
 uint16_t Server::read2byte(uint8_t group, uint8_t high, uint8_t low){ // lees 2 bytes uit en plaats ze in een word
@@ -459,7 +463,10 @@ bool Server::commandExecuted(){
     }
     return false; // nou, nog steeds niet goed gegaan
 }
+// void Server::clearInterrupts(uint8_t x){
+//     wiz.write(sNr, wiz.)
 
+// }
 
 
 

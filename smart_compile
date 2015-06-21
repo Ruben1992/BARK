@@ -35,6 +35,6 @@ if avr-gcc -g -std=c++11 -Os -mmcu=atmega$1 -c BARK.cpp ethernet.cpp spi.cpp USA
 		fi
 	fi
 else
-	echo "U faalt in programmeren, Lutser!";
+	echo "U faalt in programmeren, SHOTJE!!";
 fi
 

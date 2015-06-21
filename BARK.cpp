@@ -18,8 +18,8 @@
     #define F_CPU 16000000UL // 16 MHz
 #endif
 #define buffSize 100
-#define IPADRESS 10,0,0,222
-//#define IPADRESS 192,168,2,222
+// #define IPADRESS 10,0,0,222
+#define IPADRESS 192,168,2,222
 
 #define PORTNO 7010
 #define daisyPots 4 /*amound of daisy chained pots*/
@@ -148,6 +148,8 @@ void loop(){
             
             switch(sock0.state){
             case Server::SOCK_CLOSED:  // connection closed, lets start the connection, eh?
+                sock0.SockInterrupt(0xFF); //clear all interrupts
+
                 sock0.state = Server::SOCK_INIT;
                 /// clear all interupt registers
             break;
@@ -166,8 +168,8 @@ void loop(){
             case Server::SOCK_LISTEN:   // wait for incoming connection       
                 // if interrupt from wiznet
                 // 
-                if (sock0.getSockInterrupt() == 007){
-                    Server::ERROR;
+                if (sock0.SockInterrupt() == 7){
+                    sock0.state = Server::ERROR;
                 }
                 
 
@@ -181,79 +183,80 @@ void loop(){
                 static uint16_t last_received;
                 uint16_t nowReceived;
                 nowReceived = sock0.receivedData();
-                if (last_received != nowReceived){ /// overbodig
-                    last_received = nowReceived;
-                }
-                else{
-                    if (last_received != 0){  /// hehe, eindelijk alles ontvangen, versturen maar
-                        
-                        
-                        sock0.receivingData(inBuff, buffSize);
-                        for (int i = 0; i < nowReceived; ++i)
-                        {
-                            PORTD |= (1<<6);
-                            flowSerial.update(inBuff[i]);
-                            PORTD &= ~(1<<6);
-                        }
-                        
-                        uint8_t outBuff[10+1];
-                        uint8_t i;
-                        for (i = 0;i < 10; ++i)
-                        {
-                            if (flowSerial.outboxAvailable() == 0){
-                                outBuff[i] = 0;
-                                break;
-                            }
-                            outBuff[i] = flowSerial.outboxNextOut();
-                        }
-                        usart.write(flowSerial.serialReg[0]);
+                // if (last_received != nowReceived){ /// overbodig
+                //     last_received = nowReceived;
+                // }
+                // else{
+
+                if (nowReceived != 0){  /// hehe, eindelijk alles ontvangen, versturen maar
+                    last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
+                    
+                    sock0.receivingData(inBuff, buffSize);
+
+                    for (int i = 0; i < nowReceived; ++i)
+                    {
+                        flowSerial.update(inBuff[i]);
+                        usart.write(inBuff[i]);
                         usart.send(" ");
-                        usart.write(flowSerial.serialReg[1]);
-                        usart.send(" ");
-                        usart.write(flowSerial.serialReg[2]);
-                        usart.send(" ");
-                        usart.write(flowSerial.serialReg[3]);
-                        usart.send("\n\r");
-
-                        // sock0.sendData(outBuff);
-                        // usart.send("[byte 1 = ");
-                        // usart.write(flowSerial.serialReg[1]);
-                        // usart.send(" byte 2 = ");
-                        // usart.write(flowSerial.serialReg[2]);
-                        // usart.send(" byte 3 = ");
-                        // usart.write(flowSerial.serialReg[3]);
-                        // usart.send(" byte 4= ");
-                        // usart.write(flowSerial.serialReg[4]);
-                        // usart.send("]\n\r");
-
-
-                        /*
-                        usart.send(Rsize);
-                        usart.write((uint8_t)nowReceived);
-                        usart.send(enter);
-                        if (sock0.receivingData(buff, buffSize)){
-                            sock0.sendData(Recv);
-                            sock0.sendData(buff);
-
-                            usart.send(Recv);
-                            usart.send(buff);
-                        }
-                        else{
-                            sock0.sendData(error);
-                            usart.send(error);
-                        }
-
-                        if (buff[0] == 's' && buff[1] == 't' && buff[2] == 'o' && buff[3] == 'p'){
-                            sock0.disconnect();
-                            sock0.state = Server::SOCK_CLOSED;
-                        }
-                        else
-                            last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
-                        */
-                        last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
-
                     }
+                    usart.send("<- inbuff\r\n");
+                    uint8_t outBuff[10+1];
+                    uint8_t i;
+                    for (i = 0;i < 10; ++i)
+                    {
+                        if (flowSerial.outboxAvailable() == 0){
+                            outBuff[i] = 0;
+                            break;
+                        }
+                        outBuff[i] = flowSerial.outboxNextOut();
+                    }
+                    usart.write(flowSerial.serialReg[0]);
+                    usart.send(" ");
+                    usart.write(flowSerial.serialReg[1]);
+                    usart.send(" ");
+                    usart.write(flowSerial.serialReg[2]);
+                    usart.send(" ");
+                    usart.write(flowSerial.serialReg[3]);
+                    usart.send("\r\n");
+
+                    // sock0.sendData(outBuff);
+                    // usart.send("[byte 1 = ");
+                    // usart.write(flowSerial.serialReg[1]);
+                    // usart.send(" byte 2 = ");
+                    // usart.write(flowSerial.serialReg[2]);
+                    // usart.send(" byte 3 = ");
+                    // usart.write(flowSerial.serialReg[3]);
+                    // usart.send(" byte 4= ");
+                    // usart.write(flowSerial.serialReg[4]);
+                    // usart.send("]\n\r");
+
+
+                    /*
+                    usart.send(Rsize);
+                    usart.write((uint8_t)nowReceived);
+                    usart.send(enter);
+                    if (sock0.receivingData(buff, buffSize)){
+                        sock0.sendData(Recv);
+                        sock0.sendData(buff);
+
+                        usart.send(Recv);
+                        usart.send(buff);
+                    }
+                    else{
+                        sock0.sendData(error);
+                        usart.send(error);
+                    }
+
+                    if (buff[0] == 's' && buff[1] == 't' && buff[2] == 'o' && buff[3] == 'p'){
+                        sock0.disconnect();
+                        sock0.state = Server::SOCK_CLOSED;
+                    }
+                    else
+                        last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
+                    */
+
                 }
+//                }
 
                 if(uint8_t temp = sock0.connectionDead()){
                     usart.send(clDisC);
@@ -269,9 +272,12 @@ void loop(){
             case Server::SOCK_IPRAW:
             case Server::SOCK_UDP:
             case Server::ERROR:
+                usart.send("ERROR Detected!!\n\r");
+
                 sock0.disconnect(); // close connection (CLEAN)
                 sock0.close(); // close connection (DIRTY)
                 sock0.state = Server::SOCK_CLOSED;
+            break;
             default:
                 sock0.state = Server::SOCK_CLOSED;
                 //error
@@ -305,7 +311,7 @@ void loop(){
             usart.send(" Glob ");
             usart.write(sock0.getInterrupt());
             usart.send(" sock ");
-            usart.write(sock0.getSockInterrupt());
+            usart.write(sock0.SockInterrupt());
             usart.send(sockEnd);
             PORTD &= ~(1<<5);
         }
