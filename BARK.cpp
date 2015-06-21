@@ -188,74 +188,74 @@ void loop(){
                 // }
                 // else{
 
-                if (nowReceived != 0){  /// hehe, eindelijk alles ontvangen, versturen maar
-                    last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
-                    
-                    sock0.receivingData(inBuff, buffSize);
-
-                    for (int i = 0; i < nowReceived; ++i)
-                    {
-                        flowSerial.update(inBuff[i]);
-                        usart.write(inBuff[i]);
-                        usart.send(" ");
-                    }
-                    usart.send("<- inbuff\r\n");
-                    uint8_t outBuff[10+1];
-                    uint8_t i;
-                    for (i = 0;i < 10; ++i)
-                    {
-                        if (flowSerial.outboxAvailable() == 0){
-                            outBuff[i] = 0;
-                            break;
-                        }
-                        outBuff[i] = flowSerial.outboxNextOut();
-                    }
-                    usart.write(flowSerial.serialReg[0]);
-                    usart.send(" ");
-                    usart.write(flowSerial.serialReg[1]);
-                    usart.send(" ");
-                    usart.write(flowSerial.serialReg[2]);
-                    usart.send(" ");
-                    usart.write(flowSerial.serialReg[3]);
-                    usart.send("\r\n");
-
-                    // sock0.sendData(outBuff);
-                    // usart.send("[byte 1 = ");
-                    // usart.write(flowSerial.serialReg[1]);
-                    // usart.send(" byte 2 = ");
-                    // usart.write(flowSerial.serialReg[2]);
-                    // usart.send(" byte 3 = ");
-                    // usart.write(flowSerial.serialReg[3]);
-                    // usart.send(" byte 4= ");
-                    // usart.write(flowSerial.serialReg[4]);
-                    // usart.send("]\n\r");
-
-
-                    /*
-                    usart.send(Rsize);
-                    usart.write((uint8_t)nowReceived);
-                    usart.send(enter);
-                    if (sock0.receivingData(buff, buffSize)){
-                        sock0.sendData(Recv);
-                        sock0.sendData(buff);
-
-                        usart.send(Recv);
-                        usart.send(buff);
-                    }
-                    else{
-                        sock0.sendData(error);
-                        usart.send(error);
-                    }
-
-                    if (buff[0] == 's' && buff[1] == 't' && buff[2] == 'o' && buff[3] == 'p'){
-                        sock0.disconnect();
-                        sock0.state = Server::SOCK_CLOSED;
-                    }
-                    else
+                    if (nowReceived != 0){  /// hehe, eindelijk alles ontvangen, versturen maar
                         last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
-                    */
+                        
+                        sock0.receivingData(inBuff, buffSize);
 
-                }
+                        for (int i = 0; i < nowReceived; ++i)
+                        {
+                            flowSerial.update(inBuff[i]);
+                            usart.write(inBuff[i]);
+                            usart.send(" ");
+                        }
+                        usart.send("<- inbuff\r\n");
+                        uint8_t outBuff[10+1];
+                        uint8_t i;
+                        for (i = 0;i < 10; ++i)
+                        {
+                            if (flowSerial.outboxAvailable() == 0){
+                                outBuff[i] = 0;
+                                break;
+                            }
+                            outBuff[i] = flowSerial.outboxNextOut();
+                        }
+                        usart.write(flowSerial.serialReg[0]);
+                        usart.send(" ");
+                        usart.write(flowSerial.serialReg[1]);
+                        usart.send(" ");
+                        usart.write(flowSerial.serialReg[2]);
+                        usart.send(" ");
+                        usart.write(flowSerial.serialReg[3]);
+                        usart.send("\r\n");
+
+                        // sock0.sendData(outBuff);
+                        // usart.send("[byte 1 = ");
+                        // usart.write(flowSerial.serialReg[1]);
+                        // usart.send(" byte 2 = ");
+                        // usart.write(flowSerial.serialReg[2]);
+                        // usart.send(" byte 3 = ");
+                        // usart.write(flowSerial.serialReg[3]);
+                        // usart.send(" byte 4= ");
+                        // usart.write(flowSerial.serialReg[4]);
+                        // usart.send("]\n\r");
+
+
+                        /*
+                        usart.send(Rsize);
+                        usart.write((uint8_t)nowReceived);
+                        usart.send(enter);
+                        if (sock0.receivingData(buff, buffSize)){
+                            sock0.sendData(Recv);
+                            sock0.sendData(buff);
+
+                            usart.send(Recv);
+                            usart.send(buff);
+                        }
+                        else{
+                            sock0.sendData(error);
+                            usart.send(error);
+                        }
+
+                        if (buff[0] == 's' && buff[1] == 't' && buff[2] == 'o' && buff[3] == 'p'){
+                            sock0.disconnect();
+                            sock0.state = Server::SOCK_CLOSED;
+                        }
+                        else
+                            last_received++; // zorg er voor dat de voorwaarde van vorige meting niet nog een keer wordt getriggerd
+                        */
+
+                    }
 //                }
 
                 if(uint8_t temp = sock0.connectionDead()){
