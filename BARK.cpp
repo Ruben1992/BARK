@@ -22,7 +22,7 @@
 #define IPADRESS 192,168,2,222
 
 #define PORTNO 7010
-#define daisyPots 4 /*amound of daisy chained pots*/
+#define daisyPots 3 /*amound of daisy chained pots*/
 /* *************************************************************************************************************************** */
 //                                                more includes        
 /* *************************************************************************************************************************** */
@@ -319,17 +319,23 @@ void loop(){
 
         
 
-        if(millis - digitPotSpeed >= 50){
+        if(millis - digitPotSpeed >= 5){
             static uint8_t actualPosPots[daisyPots];
             digitPotSpeed = millis;
-            for (int i = 0; i < daisyPots; ++i) /// smoothly fades to desired value
-            {
-                if (actualPosPots[i] < flowSerial.serialReg[i])
+
+            uint8_t data[daisyPots];
+            data[0] = (flowSerial.serialReg[0] * 21 ); // volume
+            data[1] = (flowSerial.serialReg[1] * 21 ); // treble
+            data[2] = 255-(flowSerial.serialReg[2] * 21 ); // base
+
+
+            for (int i = 0; i < daisyPots; ++i){ /// smoothly fades to desired value
+                if (actualPosPots[i] < data[i])
                     actualPosPots[i]++;
-                if (actualPosPots[i] > flowSerial.serialReg[i])
+                if (actualPosPots[i] > data[i])
                     actualPosPots[i]--;
             }
-            ad5290.write(data, (uint8_t)daisyPots);    
+            ad5290.write(actualPosPots, (uint8_t)daisyPots);    
         }
 
         if(millis - aliveLedTim >= 500){
