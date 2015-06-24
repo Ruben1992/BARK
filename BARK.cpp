@@ -22,7 +22,7 @@
 #define IPADRESS 192,168,2,222
 
 #define PORTNO 7010
-#define daisyPots 3 /*amound of daisy chained pots*/
+#define daisyPots 4 /*amound of daisy chained pots*/
 /* *************************************************************************************************************************** */
 //                                                more includes        
 /* *************************************************************************************************************************** */
@@ -325,9 +325,9 @@ void loop(){
 
             uint8_t data[daisyPots];
             data[0] = (flowSerial.serialReg[0] * 21 ); // volume
-            data[1] = (flowSerial.serialReg[1] * 21 ); // treble
+            data[1] = 255-(flowSerial.serialReg[1] * 21 ); // treble
             data[2] = 255-(flowSerial.serialReg[2] * 21 ); // base
-
+            data[3] = (flowSerial.serialReg[3]+3) * 21;
 
             for (int i = 0; i < daisyPots; ++i){ /// smoothly fades to desired value
                 if (actualPosPots[i] < data[i])
