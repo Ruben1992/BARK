@@ -17,32 +17,36 @@ class FlowSerial{
         uint8_t serialReg[registerSize];
 
         //Functios:
-        uint8_t update();
+        uint8_t update(uint8_t byteIn);
         uint8_t read();
         uint8_t available();
         //void sendDebugInfo(String text, int textLength);
-        void write(uint8_t address, uint8_t out[], int quantity);
+        void write(uint8_t address, uint8_t out[], uint16_t quantity);
         void write(uint8_t address, uint8_t out);
+        uint16_t outboxAvailable();
+		uint8_t outboxNextOut();
+
+
 
 	private:
 		//FSM states
 		const static uint8_t start					= 0x00;
-		const static uint8_t startRecieved 		= 0x01;
+		const static uint8_t startRecieved 			= 0x01;
 		const static uint8_t instructionRecieved	= 0x02;
 		const static uint8_t argumentsRecieved		= 0x03;
 		const static uint8_t LSBchecksumRecieved	= 0x04;
 		const static uint8_t MSBchecksumRecieved	= 0x05;
-		const static uint8_t executeInstruction	= 0x06;
+		const static uint8_t executeInstruction		= 0x06;
 
 		//instruction codes
-		const static uint8_t IDrequest 			= 0x00;
+		const static uint8_t IDrequest 				= 0x00;
 		const static uint8_t IDset      			= 0x01;
 		const static uint8_t readRequest			= 0x02;
 		const static uint8_t writeCommand			= 0x03;
-		const static uint8_t dataReturn			= 0x04;
+		const static uint8_t dataReturn				= 0x04;
 		const static uint8_t debugInfo				= 0x05;
 		const static uint8_t debugStateCommand		= 0x06;
-		const static uint8_t gotTransmissionError		= 0x07;
+		const static uint8_t gotTransmissionError	= 0x07;
 
 		//Declare register sizes
 		uint8_t inboxBuffer[inboxBufferSize];
@@ -66,7 +70,10 @@ class FlowSerial{
 		//Functions to simplify the code
 		void addToOutbox(uint8_t out);
         void transmissionError(bool resend);
-        void outboxSend();
+        //void outboxSend();
+        
 };
+
+extern FlowSerial flowSerial;
 
 #endif //_flowSerial_h_

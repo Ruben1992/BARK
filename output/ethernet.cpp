@@ -189,7 +189,11 @@ void Server::setPort(uint16_t getal){
 int Server::start(){                               // 0x13 - initalizatie
 
     wiz.write(sNr, wiz.Sn_CR, CR.CLOSE); /// sluit de verbinding, voor het geval dat er nog een actief was
-    while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de verbinding ook echt is gesloten
+    if (commandExecuted() == false){
+        wiz.write(sNr, wiz.Sn_CR, CR.CLOSE);
+        return 0;
+    }
+    //while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de verbinding ook echt is gesloten
     wiz.write(sNr, wiz.Sn_IR, 0xFF); // clear all interrupts
 
     wiz.write(sNr, wiz.Sn_MR, MR.TCP);                  //      Set Mode (to tcp)
@@ -197,7 +201,11 @@ int Server::start(){                               // 0x13 - initalizatie
     wiz.write(sNr, wiz.Sn_PORT1, port[1]);              //
 
     wiz.write(sNr, wiz.Sn_CR, CR.OPEN);                 //      command- open
-    while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de instructie is uigevoerd
+    if (commandExecuted() == false){
+        wiz.write(sNr, wiz.Sn_CR, CR.CLOSE);
+        return 0;
+    }
+    //while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de instructie is uigevoerd
 
     if (wiz.read(sNr, wiz.Sn_SR) != SR.INIT){ 
         wiz.write(sNr, wiz.Sn_CR, CR.CLOSE);
@@ -207,7 +215,11 @@ int Server::start(){                               // 0x13 - initalizatie
 }
 int Server::listen(){                              // 0x14 - luisteren voor binnen koment verkeer
     wiz.write(sNr, wiz.Sn_CR, CR.LISTEN);
-    while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de instructie is uigevoerd
+    if (commandExecuted() == false){
+        wiz.write(sNr, wiz.Sn_CR, CR.CLOSE);
+        return 0;
+    }
+    //while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de instructie is uigevoerd
 
     if (wiz.read(sNr, wiz.Sn_SR) != SR.LISTEN){
         wiz.write(sNr, wiz.Sn_CR, CR.CLOSE);
@@ -236,7 +248,11 @@ int Server::receivingData(uint8_t buffer[], uint16_t maxSize){                  
 
         /* set RECV command */
         wiz.write(sNr, wiz.Sn_CR, CR.RECV);
-        while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de instructie is uigevoer
+        if (commandExecuted() == false){
+            wiz.write(sNr, wiz.Sn_CR, CR.CLOSE);
+            return 0;
+        }
+        //while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de instructie is uigevoer
         return 0;   // error te groot
     }
     //get_offset = Sn_RX_RD & gSn_RX_MASK;  // calculate the offset address
@@ -284,7 +300,9 @@ int Server::receivingData(uint8_t buffer[], uint16_t maxSize){                  
 
     /* set RECV command */
     wiz.write(sNr, wiz.Sn_CR, CR.RECV);
-    while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de instructie is uigevoerd
+    if (commandExecuted() == false)
+        return 0;
+    //while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de instructie is uigevoerd
     return 1;
 }
 
@@ -340,7 +358,9 @@ int Server::sendData(uint8_t data[]/*,uint16_t length*/){
 
     /* set SEND command */
     wiz.write(sNr, wiz.Sn_CR, CR.SEND);
-    while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de instructie is uigevoerd
+    if (commandExecuted() == false)
+        return 0;
+    //while(wiz.read(sNr, wiz.Sn_CR) != 0); // wacht tot de instructie is uigevoerd
 
 }
 
@@ -387,10 +407,14 @@ uint8_t Server::getStatus(){                           // get status van de sock
 uint8_t Server::getInterrupt(){                           // get global interrups
     return wiz.read(sNr, wiz.C_IR);
 }
-uint8_t Server::getSockInterrupt(){                           // get socket Interupts
+uint8_t Server::SockInterrupt(int8_t x){                           // get socket Interupts
+    uint8_t temp = wiz.read(sNr, wiz.Sn_IR);
+    wiz.write(sNr, wiz.Sn_IR, x);
+    return temp;
+}
+uint8_t Server::SockInterrupt(){                           // get socket Interupts
     return wiz.read(sNr, wiz.Sn_IR);
 }
-
 
 
 uint16_t Server::read2byte(uint8_t group, uint8_t high, uint8_t low){ // lees 2 bytes uit en plaats ze in een word
@@ -428,6 +452,22 @@ int Server::watchdog(){
         }
     }
 }
+
+
+bool Server::commandExecuted(){
+    for (int i = 0; i < 100; ++i)
+    {
+        if(wiz.read(sNr, wiz.Sn_CR) == 0) // wacht tot de verbinding ook echt is gesloten
+            return true; // commandis uitgevoerd
+        _delay_ms(1);
+    }
+    return false; // nou, nog steeds niet goed gegaan
+}
+// void Server::clearInterrupts(uint8_t x){
+//     wiz.write(sNr, wiz.)
+
+// }
+
 
 
 wiznet wiz;
